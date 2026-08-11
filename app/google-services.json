@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "123456789012",
-    "project_id": "techfix-coursework",
-    "storage_bucket": "techfix-coursework.appspot.com"
+    "project_number": "313116024461",
+    "project_id": "techfix-d22c3",
+    "storage_bucket": "techfix-d22c3.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:123456789012:android:abcdef0123456789",
+        "mobilesdk_app_id": "1:313116024461:android:454d947f4b8bbbe3904cc4",
         "android_client_info": {
           "package_name": "com.techfix.app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDummyKeyForBuildVerificationOnly"
+          "current_key": "AIzaSyDQc5QiVXfmOavyvK9_VUmPwxmsk4mJj3o"
         }
       ],
       "services": {
