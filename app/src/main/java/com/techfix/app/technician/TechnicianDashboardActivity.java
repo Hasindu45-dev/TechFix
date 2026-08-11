@@ -1,22 +1,26 @@
-package com.techfix.app;
+package com.techfix.app.technician;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.techfix.app.admin.AdminDashboardActivity;
+import com.techfix.app.R;
 import com.techfix.app.authentication.LoginActivity;
-import com.techfix.app.customer.CustomerDashboardActivity;
 import com.techfix.app.database.DatabaseHelper;
 import com.techfix.app.models.User;
-import com.techfix.app.technician.TechnicianDashboardActivity;
 
-public class MainActivity extends AppCompatActivity {
+public class TechnicianDashboardActivity extends AppCompatActivity {
+
+    private TextView welcomeUserText;
+    private MaterialButton logoutButton;
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
@@ -25,29 +29,38 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_technician_dashboard);
+
+        welcomeUserText = findViewById(R.id.welcomeUserText);
+        logoutButton = findViewById(R.id.logoutButton);
 
         mAuth = FirebaseAuth.getInstance();
         mFirestore = FirebaseFirestore.getInstance();
         mDbHelper = new DatabaseHelper(this);
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            checkUserRoleAndRedirect(currentUser.getUid());
-        } else {
-            startActivity(new Intent(MainActivity.this, LoginActivity.class));
-            finish();
-        }
-    }
-
-    private void checkUserRoleAndRedirect(String userId) {
-        // Try local SQLite cache first for instant redirect
-        User cachedUser = mDbHelper.getUser(userId);
-        if (cachedUser != null) {
-            navigateToDashboard(cachedUser.getRole());
+        if (currentUser == null) {
+            redirectToLogin();
             return;
         }
 
-        // If not cached, query Firestore
+        loadUserData(currentUser.getUid());
+
+        logoutButton.setOnClickListener(v -> {
+            mAuth.signOut();
+            Toast.makeText(TechnicianDashboardActivity.this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+            redirectToLogin();
+        });
+    }
+
+    private void loadUserData(String userId) {
+        // Try local SQLite cache first
+        User cachedUser = mDbHelper.getUser(userId);
+        if (cachedUser != null) {
+            welcomeUserText.setText("Welcome, " + cachedUser.getName() + " (Technician)!");
+        }
+
+        // Always sync with Firestore online
         mFirestore.collection("users").document(userId)
                 .get()
                 .addOnCompleteListener(task -> {
@@ -56,28 +69,19 @@ public class MainActivity extends AppCompatActivity {
                         if (document.exists()) {
                             User user = document.toObject(User.class);
                             if (user != null) {
-                                // Cache User to SQLite database
+                                // Cache to SQLite
                                 mDbHelper.insertOrUpdateUser(user);
-                                navigateToDashboard(user.getRole());
-                                return;
+                                // Update UI
+                                welcomeUserText.setText("Welcome, " + user.getName() + " (Technician)!");
                             }
                         }
                     }
-                    // Fallback to Login
-                    startActivity(new Intent(MainActivity.this, LoginActivity.class));
-                    finish();
                 });
     }
 
-    private void navigateToDashboard(String role) {
-        Intent intent;
-        if ("Admin".equalsIgnoreCase(role)) {
-            intent = new Intent(MainActivity.this, AdminDashboardActivity.class);
-        } else if ("Technician".equalsIgnoreCase(role)) {
-            intent = new Intent(MainActivity.this, TechnicianDashboardActivity.class);
-        } else {
-            intent = new Intent(MainActivity.this, CustomerDashboardActivity.class);
-        }
+    private void redirectToLogin() {
+        Intent intent = new Intent(TechnicianDashboardActivity.this, LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
     }

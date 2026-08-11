@@ -35,6 +35,28 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Authentication Activities -->
+        <activity 
+            android:name=".authentication.LoginActivity" 
+            android:exported="false" 
+            android:windowSoftInputMode="adjustResize" />
+        <activity 
+            android:name=".authentication.RegisterActivity" 
+            android:exported="false" 
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Role Dashboards -->
+        <activity 
+            android:name=".customer.CustomerDashboardActivity" 
+            android:exported="false" />
+        <activity 
+            android:name=".technician.TechnicianDashboardActivity" 
+            android:exported="false" />
+        <activity 
+            android:name=".admin.AdminDashboardActivity" 
+            android:exported="false" />
+
     </application>
 
 </manifest>
