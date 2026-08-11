@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/backgroundColor"
+    tools:context="com.techfix.app.customer.PaymentActivity">
+
+    <!-- AppBar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent">
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/primaryColor"
+            app:title="Complete Repair Payment"
+            app:titleTextColor="@color/white" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/appBar"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Cost Summary Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/dividerColor">
+                
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:gravity="center_horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TOTAL AMOUNT DUE"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/textSecondary" />
+
+                    <TextView
+                        android:id="@+id/paymentTotalText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Rs. 15,000.00"
+                        android:textSize="28sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/secondaryColor"
+                        android:layout_marginTop="8dp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/dividerColor"
+                        android:layout_marginVertical="16dp" />
+
+                    <TextView
+                        android:id="@+id/paymentDeviceText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Device: Dell Latitude 5490"
+                        android:textSize="14sp"
+                        android:textColor="@color/textPrimary" />
+
+                    <TextView
+                        android:id="@+id/paymentServiceText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Service: Laptop Screen Repair"
+                        android:textSize="14sp"
+                        android:textColor="@color/primaryLightColor"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Payment Options -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Choose Payment Method"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/textPrimary"
+                android:layout_marginTop="24dp" />
+
+            <RadioGroup
+                android:id="@+id/paymentMethodRadioGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+
+                <RadioButton
+                    android:id="@+id/radioCash"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Cash on Delivery / Pickup"
+                    android:textSize="14sp"
+                    android:textColor="@color/textPrimary"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/radioCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Credit or Debit Card Simulation"
+                    android:textSize="14sp"
+                    android:textColor="@color/textPrimary" />
+
+                <RadioButton
+                    android:id="@+id/radioOnline"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Online Banking Simulation"
+                    android:textSize="14sp"
+                    android:textColor="@color/textPrimary" />
+            </RadioGroup>
+
+            <!-- Card Simulation Fields Panel (Hidden initially) -->
+            <LinearLayout
+                android:id="@+id/cardFieldsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="16dp"
+                android:visibility="gone">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Card Number"
+                    app:boxStrokeColor="@color/primaryColor"
+                    app:hintTextColor="@color/primaryColor">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/cardNoEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:maxLength="16" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="12dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="Expiry (MM/YY)"
+                        app:boxStrokeColor="@color/primaryColor"
+                        app:hintTextColor="@color/primaryColor"
+                        android:layout_marginEnd="8dp">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/expiryEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="date"
+                            android:maxLength="5" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="CVV"
+                        app:boxStrokeColor="@color/primaryColor"
+                        app:hintTextColor="@color/primaryColor"
+                        android:layout_marginStart="8dp">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/cvvEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="numberPassword"
+                            android:maxLength="3" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Online Banking Simulation Panel (Hidden initially) -->
+            <LinearLayout
+                android:id="@+id/onlineFieldsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="16dp"
+                android:visibility="gone">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Select Bank Portal"
+                    app:boxStrokeColor="@color/primaryColor"
+                    app:hintTextColor="@color/primaryColor">
+                    <AutoCompleteTextView
+                        android:id="@+id/bankSelectAutoComplete"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:hint="Banking Username"
+                    app:boxStrokeColor="@color/primaryColor"
+                    app:hintTextColor="@color/primaryColor">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/bankUsername"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <!-- Pay Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSubmitPayment"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Pay Rs. 15,000.00"
+                android:textSize="16sp"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/primaryColor"
+                app:cornerRadius="8dp"
+                android:layout_marginTop="32dp" />
+
+            <ProgressBar
+                android:id="@+id/paymentProgressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                android:indeterminateTint="@color/secondaryColor" />
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

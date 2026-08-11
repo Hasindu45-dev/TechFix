@@ -133,13 +133,20 @@ public class CustomerDashboardActivity extends AppCompatActivity {
 
         // Quick actions click listeners
         actionBookRepair.setOnClickListener(v -> navigateToBookingFlow(null));
-        actionTrackRepair.setOnClickListener(v -> Toast.makeText(this, "Track Repair - Coming in Phase 7", Toast.LENGTH_SHORT).show());
-        actionHistory.setOnClickListener(v -> Toast.makeText(this, "Repair History - Coming in Phase 7", Toast.LENGTH_SHORT).show());
+        actionTrackRepair.setOnClickListener(v -> {
+            Intent intent = new Intent(CustomerDashboardActivity.this, com.techfix.app.customer.TrackRepairActivity.class);
+            startActivity(intent);
+        });
+        actionHistory.setOnClickListener(v -> {
+            Intent intent = new Intent(CustomerDashboardActivity.this, com.techfix.app.customer.RepairHistoryActivity.class);
+            startActivity(intent);
+        });
         actionFindBranch.setOnClickListener(v -> {
             Intent intent = new Intent(CustomerDashboardActivity.this, com.techfix.app.maps.BranchLocatorActivity.class);
             startActivity(intent);
         });
     }
+
 
 
     private void loadUserProfile(String userId) {

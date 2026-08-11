@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <!-- Timeline indicators column -->
+    <LinearLayout
+        android:layout_width="48dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <View
+            android:id="@+id/lineTop"
+            android:layout_width="2dp"
+            android:layout_height="12dp"
+            android:background="@color/dividerColor" />
+
+        <ImageView
+            android:id="@+id/circleIndicator"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@android:drawable/presence_invisible"
+            android:background="@android:drawable/radiobutton_off_background"
+            android:contentDescription="Status Indicator" />
+
+        <View
+            android:id="@+id/lineBottom"
+            android:layout_width="2dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@color/dividerColor" />
+    </LinearLayout>
+
+    <!-- Timeline text details card -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingVertical="8dp"
+        android:paddingEnd="16dp"
+        android:layout_marginStart="12dp">
+
+        <TextView
+            android:id="@+id/statusTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Request Submitted"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/textSecondary" />
+
+        <TextView
+            android:id="@+id/statusSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pending"
+            android:textSize="12sp"
+            android:textColor="@color/textSecondary"
+            android:layout_marginTop="2dp" />
+    </LinearLayout>
+</LinearLayout>

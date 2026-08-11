@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/dividerColor">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Row 1: ID and Date -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/historyIdText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ID: #12345"
+                android:textSize="12sp"
+                android:textColor="@color/textSecondary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/historyDateText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:text="Date: 12/08/2026"
+                android:textSize="12sp"
+                android:textColor="@color/textSecondary" />
+        </RelativeLayout>
+
+        <!-- Row 2: Device and Service -->
+        <TextView
+            android:id="@+id/historyDeviceText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Dell Latitude 5490"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/textPrimary"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/historyServiceText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Laptop Screen Repair"
+            android:textSize="14sp"
+            android:textColor="@color/primaryLightColor"
+            android:layout_marginTop="2dp" />
+
+        <TextView
+            android:id="@+id/historyBranchText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Colombo Branch"
+            android:textSize="12sp"
+            android:textColor="@color/textSecondary"
+            android:layout_marginTop="4dp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/dividerColor"
+            android:layout_marginVertical="12dp" />
+
+        <!-- Row 3: Price and Statuses -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/historyPriceText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rs. 15,000"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/secondaryColor" />
+
+            <!-- Payment Badge & Repair Status Badge -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/historyRepairStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ready for Pickup"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:background="@color/primaryColor"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:layout_marginEnd="6dp" />
+
+                <TextView
+                    android:id="@+id/historyPaymentStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Paid"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:background="#2EC4B6"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp" />
+            </LinearLayout>
+        </RelativeLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

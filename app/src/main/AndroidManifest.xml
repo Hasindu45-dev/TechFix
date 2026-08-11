@@ -67,7 +67,19 @@
             android:name=".customer.BookAppointmentActivity" 
             android:exported="false" />
 
+        <!-- Repair Operations Activities -->
+        <activity 
+            android:name=".customer.RepairHistoryActivity" 
+            android:exported="false" />
+        <activity 
+            android:name=".customer.TrackRepairActivity" 
+            android:exported="false" />
+        <activity 
+            android:name=".customer.PaymentActivity" 
+            android:exported="false" />
+
     </application>
+
 
 
 </manifest>
