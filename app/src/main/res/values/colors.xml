@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
+    <!-- Core Brand Colors -->
+    <color name="primaryColor">#0F2537</color>     <!-- Dark Blue -->
+    <color name="primaryLightColor">#1D3557</color>
+    <color name="primaryDarkColor">#081426</color>
+    <color name="secondaryColor">#F77F00</color>   <!-- Orange -->
+    <color name="secondaryLightColor">#FF9F1C</color>
+    <color name="secondaryDarkColor">#D65A00</color>
+    
+    <!-- Neutral Colors -->
+    <color name="backgroundColor">#FFFFFF</color>
+    <color name="surfaceColor">#F8F9FA</color>
+    <color name="errorColor">#D00000</color>
+    
+    <!-- Text Colors -->
+    <color name="textPrimary">#1E293B</color>
+    <color name="textSecondary">#64748B</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="dividerColor">#E2E8F0</color>
 </resources>

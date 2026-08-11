@@ -1,4 +1,4 @@
-package com.example.techfix;
+package com.techfix.app;
 
 import org.junit.Test;
 
