@@ -32,7 +32,7 @@ import java.util.List;
 
 public class CustomerDashboardActivity extends AppCompatActivity {
 
-    private TextView welcomeUserText, emptyStateText;
+    private TextView welcomeUserText, emptyStateText, txtSeeAllServices;
     private ImageView logoutIcon;
     private EditText searchEditText;
     private ChipGroup categoryChipGroup;
@@ -49,6 +49,7 @@ public class CustomerDashboardActivity extends AppCompatActivity {
     private List<Service> allServicesList = new ArrayList<>();
     private String currentCategoryFilter = "All";
     private String currentSearchQuery = "";
+    private boolean isShowingAllServices = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +73,7 @@ public class CustomerDashboardActivity extends AppCompatActivity {
         categoryChipGroup = findViewById(R.id.categoryChipGroup);
         servicesRecyclerView = findViewById(R.id.servicesRecyclerView);
         emptyStateText = findViewById(R.id.emptyStateText);
+        txtSeeAllServices = findViewById(R.id.txtSeeAllServices);
 
         actionBookRepair = findViewById(R.id.actionBookRepair);
         actionTrackRepair = findViewById(R.id.actionTrackRepair);
@@ -91,6 +93,11 @@ public class CustomerDashboardActivity extends AppCompatActivity {
         fetchServicesFromFirestore();
 
         // Listeners
+        txtSeeAllServices.setOnClickListener(v -> {
+            isShowingAllServices = !isShowingAllServices;
+            applyFilters();
+        });
+
         logoutIcon.setOnClickListener(v -> {
             mAuth.signOut();
             Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
@@ -195,15 +202,43 @@ public class CustomerDashboardActivity extends AppCompatActivity {
         applyFilters();
     }
 
+    private void seedSQLiteServicesLocally() {
+        List<Service> defaultServices = new ArrayList<>();
+        // Computer services
+        defaultServices.add(new Service("s1", "Laptop Screen Repair", "Computer", "Replacement of cracked, damaged or flickering laptop screen panel.", 15000.0, "1-2 days", ""));
+        defaultServices.add(new Service("s2", "Operating System Installation", "Computer", "Clean installation of Windows or macOS with drivers and software setup.", 2500.0, "3 hours", ""));
+        defaultServices.add(new Service("s3", "RAM/SSD Upgrade", "Computer", "Speed up your system by upgrading local memory and storage drives.", 8500.0, "1 hour", ""));
+        defaultServices.add(new Service("s7", "Keyboard Replacement", "Computer", "Replace broken, sticky, or unresponsive keys with a fresh replacement keyboard layout.", 4500.0, "1-2 hours", ""));
+        defaultServices.add(new Service("s8", "Thermal Paste & Cleaning", "Computer", "Prevent overheating and noise by cleaning fans and applying thermal paste.", 2000.0, "1 hour", ""));
+        defaultServices.add(new Service("s9", "Motherboard Chip Repair", "Computer", "Advanced diagnostics and micro-soldering for power faults and water damage.", 18000.0, "3-5 days", ""));
+        defaultServices.add(new Service("s10", "Data Recovery Service", "Computer", "Retrieve lost or deleted files from damaged hard drives or system failures.", 7500.0, "2 days", ""));
+        
+        // Mobile services
+        defaultServices.add(new Service("s4", "Mobile Screen Replacement", "Mobile", "Premium display replacements for cracked, dead, or unresponsive touch screens.", 9500.0, "2 hours", ""));
+        defaultServices.add(new Service("s5", "Battery Replacement", "Mobile", "Restore your device's original battery health with high-quality battery swap.", 4500.0, "1 hour", ""));
+        defaultServices.add(new Service("s6", "Charging Port Repair", "Mobile", "Repair or replace faulty micro-USB or USB-C charging ports.", 3500.0, "1 hour", ""));
+        defaultServices.add(new Service("s11", "Camera Module Repair", "Mobile", "Replace blurry, cracked, or shaking front/rear camera modules.", 5500.0, "1 hour", ""));
+        defaultServices.add(new Service("s12", "Speaker & Mic Replacement", "Mobile", "Fix low call volume, crackling noise, or silent speakers.", 2500.0, "1 hour", ""));
+        defaultServices.add(new Service("s13", "Water Damage Recovery", "Mobile", "Ultrasonic cleaning and motherboard treatment to recover liquid damage.", 4000.0, "24 hours", ""));
+        defaultServices.add(new Service("s14", "Wi-Fi & Network Repair", "Mobile", "Fix antenna problems, weak cellular reception, or greyed Wi-Fi switch.", 6000.0, "1-2 days", ""));
+
+        for (Service s : defaultServices) {
+            mDbHelper.insertOrUpdateService(s);
+        }
+    }
+
     private void fetchServicesFromFirestore() {
         mFirestore.collection("services").get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
                         if (task.getResult().isEmpty()) {
-                            // Automatically seed Firestore with default coursework data
+                            // Seed default services ONLY if the Firestore collection is completely empty
                             seedDefaultServices();
                         } else {
                             List<Service> services = new ArrayList<>();
+                            // Clear local SQLite cache table first to keep it in sync with Firestore deletions
+                            mDbHelper.clearServicesTable();
+                            
                             for (DocumentSnapshot doc : task.getResult()) {
                                 Service service = doc.toObject(Service.class);
                                 if (service != null) {
@@ -222,26 +257,35 @@ public class CustomerDashboardActivity extends AppCompatActivity {
 
     private void seedDefaultServices() {
         List<Service> defaultServices = new ArrayList<>();
+        // Computer services
         defaultServices.add(new Service("s1", "Laptop Screen Repair", "Computer", "Replacement of cracked, damaged or flickering laptop screen panel.", 15000.0, "1-2 days", ""));
         defaultServices.add(new Service("s2", "Operating System Installation", "Computer", "Clean installation of Windows or macOS with drivers and software setup.", 2500.0, "3 hours", ""));
         defaultServices.add(new Service("s3", "RAM/SSD Upgrade", "Computer", "Speed up your system by upgrading local memory and storage drives.", 8500.0, "1 hour", ""));
+        defaultServices.add(new Service("s7", "Keyboard Replacement", "Computer", "Replace broken, sticky, or unresponsive keys with a fresh replacement keyboard layout.", 4500.0, "1-2 hours", ""));
+        defaultServices.add(new Service("s8", "Thermal Paste & Cleaning", "Computer", "Prevent overheating and noise by cleaning fans and applying thermal paste.", 2000.0, "1 hour", ""));
+        defaultServices.add(new Service("s9", "Motherboard Chip Repair", "Computer", "Advanced diagnostics and micro-soldering for power faults and water damage.", 18000.0, "3-5 days", ""));
+        defaultServices.add(new Service("s10", "Data Recovery Service", "Computer", "Retrieve lost or deleted files from damaged hard drives or system failures.", 7500.0, "2 days", ""));
+        
+        // Mobile services
         defaultServices.add(new Service("s4", "Mobile Screen Replacement", "Mobile", "Premium display replacements for cracked, dead, or unresponsive touch screens.", 9500.0, "2 hours", ""));
         defaultServices.add(new Service("s5", "Battery Replacement", "Mobile", "Restore your device's original battery health with high-quality battery swap.", 4500.0, "1 hour", ""));
         defaultServices.add(new Service("s6", "Charging Port Repair", "Mobile", "Repair or replace faulty micro-USB or USB-C charging ports.", 3500.0, "1 hour", ""));
+        defaultServices.add(new Service("s11", "Camera Module Repair", "Mobile", "Replace blurry, cracked, or shaking front/rear camera modules.", 5500.0, "1 hour", ""));
+        defaultServices.add(new Service("s12", "Speaker & Mic Replacement", "Mobile", "Fix low call volume, crackling noise, or silent speakers.", 2500.0, "1 hour", ""));
+        defaultServices.add(new Service("s13", "Water Damage Recovery", "Mobile", "Ultrasonic cleaning and motherboard treatment to recover liquid damage.", 4000.0, "24 hours", ""));
+        defaultServices.add(new Service("s14", "Wi-Fi & Network Repair", "Mobile", "Fix antenna problems, weak cellular reception, or greyed Wi-Fi switch.", 6000.0, "1-2 days", ""));
 
         for (Service s : defaultServices) {
-            mFirestore.collection("services").document(s.getServiceId())
-                    .set(s)
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            mDbHelper.insertOrUpdateService(s);
-                            if (!allServicesList.contains(s)) {
-                                allServicesList.add(s);
-                                applyFilters();
-                            }
-                        }
-                    });
+            // Always insert into SQLite cache and update local state immediately
+            mDbHelper.insertOrUpdateService(s);
+            if (!allServicesList.contains(s)) {
+                allServicesList.add(s);
+            }
+            
+            // Try to sync with Firestore in background (may fail due to write permissions, which is fine)
+            mFirestore.collection("services").document(s.getServiceId()).set(s);
         }
+        applyFilters();
     }
 
     private void applyFilters() {
@@ -262,9 +306,26 @@ public class CustomerDashboardActivity extends AppCompatActivity {
             }
         }
 
-        serviceAdapter.setServices(filteredList);
+        // Show/hide 'See All' button based on total matching items
+        if (filteredList.size() <= 2) {
+            txtSeeAllServices.setVisibility(View.GONE);
+        } else {
+            txtSeeAllServices.setVisibility(View.VISIBLE);
+        }
 
-        if (filteredList.isEmpty()) {
+        // Apply count preview limit
+        List<Service> displayedList;
+        if (isShowingAllServices) {
+            displayedList = filteredList;
+            txtSeeAllServices.setText("Collapse");
+        } else {
+            displayedList = filteredList.subList(0, Math.min(filteredList.size(), 2));
+            txtSeeAllServices.setText("See All");
+        }
+
+        serviceAdapter.setServices(displayedList);
+
+        if (displayedList.isEmpty()) {
             emptyStateText.setVisibility(View.VISIBLE);
             servicesRecyclerView.setVisibility(View.GONE);
         } else {

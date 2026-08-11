@@ -27,7 +27,7 @@ import java.util.List;
 
 public class AdminDashboardActivity extends AppCompatActivity {
 
-    private MaterialCardView cardManageBranches, cardManageServices, cardManageTechnicians, cardManageParts;
+    private MaterialCardView cardManageBranches, cardManageServices, cardManageTechnicians, cardManageParts, cardCompletedOrders;
     private RecyclerView adminRecyclerView;
     private TextView noAdminJobsText;
     private ImageView logoutIcon;
@@ -54,6 +54,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         cardManageServices = findViewById(R.id.cardManageServices);
         cardManageTechnicians = findViewById(R.id.cardManageTechnicians);
         cardManageParts = findViewById(R.id.cardManageParts);
+        cardCompletedOrders = findViewById(R.id.cardCompletedOrders);
         adminRecyclerView = findViewById(R.id.adminRecyclerView);
         noAdminJobsText = findViewById(R.id.noAdminJobsText);
         logoutIcon = findViewById(R.id.adminLogoutIcon);
@@ -69,6 +70,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         cardManageServices.setOnClickListener(v -> launchCrud("services"));
         cardManageTechnicians.setOnClickListener(v -> launchCrud("technicians"));
         cardManageParts.setOnClickListener(v -> launchCrud("spare_parts"));
+        cardCompletedOrders.setOnClickListener(v -> startActivity(new Intent(AdminDashboardActivity.this, AdminCompletedOrdersActivity.class)));
 
         logoutIcon.setOnClickListener(v -> {
             mAuth.signOut();
@@ -103,8 +105,10 @@ public class AdminDashboardActivity extends AppCompatActivity {
                         for (DocumentSnapshot doc : task.getResult()) {
                             Appointment appt = doc.toObject(Appointment.class);
                             if (appt != null) {
-                                appointmentsList.add(appt);
                                 mDbHelper.insertOrUpdateAppointment(appt);
+                                if (!"Completed".equalsIgnoreCase(appt.getStatus())) {
+                                    appointmentsList.add(appt);
+                                }
                             }
                         }
                         adapter.setJobs(appointmentsList, servicesList);
@@ -112,7 +116,12 @@ public class AdminDashboardActivity extends AppCompatActivity {
                     } else {
                         // Offline caching fallback
                         List<Appointment> cached = mDbHelper.getAppointmentsForCustomer("");
-                        appointmentsList = cached;
+                        appointmentsList.clear();
+                        for (Appointment a : cached) {
+                            if (!"Completed".equalsIgnoreCase(a.getStatus())) {
+                                appointmentsList.add(a);
+                            }
+                        }
                         adapter.setJobs(appointmentsList, servicesList);
                         noAdminJobsText.setVisibility(appointmentsList.isEmpty() ? View.VISIBLE : View.GONE);
                     }

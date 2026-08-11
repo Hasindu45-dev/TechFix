@@ -79,6 +79,29 @@
                     android:textColor="@color/textPrimary" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Custom Service Input (Visible only when 'Other' is selected) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/customServiceInputLayout"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Specify Custom Service Title"
+                android:visibility="gone"
+                app:boxStrokeColor="@color/primaryColor"
+                app:hintTextColor="@color/primaryColor"
+                app:startIconDrawable="@android:drawable/ic_menu_edit"
+                app:startIconTint="@color/textSecondary"
+                app:layout_constraintTop_toBottomOf="@id/serviceInputLayout">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/customServiceEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:textColor="@color/textPrimary" />
+            </com.google.android.material.textfield.TextInputLayout>
+
             <!-- Device Model Input -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/modelInputLayout"
@@ -91,7 +114,7 @@
                 app:hintTextColor="@color/primaryColor"
                 app:startIconDrawable="@android:drawable/ic_menu_agenda"
                 app:startIconTint="@color/textSecondary"
-                app:layout_constraintTop_toBottomOf="@id/serviceInputLayout">
+                app:layout_constraintTop_toBottomOf="@id/customServiceInputLayout">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/modelEditText"

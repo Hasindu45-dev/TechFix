@@ -214,6 +214,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // --- SERVICES CRUD ---
 
+    public void clearServicesTable() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_SERVICES, null, null);
+    }
+
     public void insertOrUpdateService(Service service) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();

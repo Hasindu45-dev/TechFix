@@ -28,6 +28,7 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -52,7 +53,8 @@ public class BookAppointmentActivity extends AppCompatActivity {
     private static final int LOCATION_PERMISSION_CODE = 2003;
 
     private AutoCompleteTextView categoryAutoComplete, serviceAutoComplete;
-    private TextInputEditText modelEditText, dateEditText, descEditText;
+    private TextInputLayout customServiceInputLayout;
+    private TextInputEditText modelEditText, dateEditText, descEditText, customServiceEditText;
     private MaterialButton btnTakePhoto, btnBookAppointment;
     private ImageView deviceImagePreview;
     private ProgressBar progressBar;
@@ -94,6 +96,8 @@ public class BookAppointmentActivity extends AppCompatActivity {
         // Bind Views
         categoryAutoComplete = findViewById(R.id.categoryAutoComplete);
         serviceAutoComplete = findViewById(R.id.serviceAutoComplete);
+        customServiceInputLayout = findViewById(R.id.customServiceInputLayout);
+        customServiceEditText = findViewById(R.id.customServiceEditText);
         modelEditText = findViewById(R.id.modelEditText);
         dateEditText = findViewById(R.id.dateEditText);
         descEditText = findViewById(R.id.descEditText);
@@ -101,6 +105,17 @@ public class BookAppointmentActivity extends AppCompatActivity {
         btnBookAppointment = findViewById(R.id.btnBookAppointment);
         deviceImagePreview = findViewById(R.id.deviceImagePreview);
         progressBar = findViewById(R.id.bookingProgressBar);
+
+        // Listen for service selection change to show/hide custom service field
+        serviceAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
+            String selected = filteredServiceNames.get(position);
+            if ("Other".equalsIgnoreCase(selected)) {
+                customServiceInputLayout.setVisibility(View.VISIBLE);
+            } else {
+                customServiceInputLayout.setVisibility(View.GONE);
+                customServiceEditText.setText("");
+            }
+        });
 
         // Setup Categories dropdown
         ArrayAdapter<String> catAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, CATEGORIES);
@@ -145,9 +160,20 @@ public class BookAppointmentActivity extends AppCompatActivity {
             }
         }
 
+        // Dynamically append "Other" option for custom user-entered services
+        filteredServiceNames.add("Other");
+        filteredServices.add(new Service("other", "Other", category, "Custom user-defined service", 0.0, "Variable", ""));
+
         ArrayAdapter<String> serviceAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, filteredServiceNames);
         serviceAutoComplete.setAdapter(serviceAdapter);
         
+        if (customServiceInputLayout != null) {
+            customServiceInputLayout.setVisibility(View.GONE);
+        }
+        if (customServiceEditText != null) {
+            customServiceEditText.setText("");
+        }
+
         if (!filteredServiceNames.isEmpty()) {
             serviceAutoComplete.setText(filteredServiceNames.get(0), false);
         } else {
@@ -247,6 +273,17 @@ public class BookAppointmentActivity extends AppCompatActivity {
             serviceAutoComplete.setError("Please select a service");
             return;
         }
+
+        // If "Other" is chosen, validate custom title and override serviceName
+        if ("Other".equalsIgnoreCase(serviceName)) {
+            String customTitle = customServiceEditText.getText().toString().trim();
+            if (TextUtils.isEmpty(customTitle)) {
+                customServiceEditText.setError("Specify custom service title");
+                return;
+            }
+            serviceName = customTitle;
+        }
+
         if (TextUtils.isEmpty(model)) {
             modelEditText.setError("Device model is required");
             return;
@@ -262,10 +299,14 @@ public class BookAppointmentActivity extends AppCompatActivity {
 
         // Find Service ID matching selected name
         String serviceId = "s1";
-        for (Service s : servicesList) {
-            if (s.getName().equalsIgnoreCase(serviceName)) {
-                serviceId = s.getServiceId();
-                break;
+        if ("Other".equalsIgnoreCase(serviceAutoComplete.getText().toString())) {
+            serviceId = "other";
+        } else {
+            for (Service s : servicesList) {
+                if (s.getName().equalsIgnoreCase(serviceName)) {
+                    serviceId = s.getServiceId();
+                    break;
+                }
             }
         }
 

@@ -21,6 +21,7 @@ import com.techfix.app.R;
 import com.techfix.app.admin.AdminDashboardActivity;
 import com.techfix.app.customer.CustomerDashboardActivity;
 import com.techfix.app.database.DatabaseHelper;
+import com.techfix.app.models.Technician;
 import com.techfix.app.models.User;
 import com.techfix.app.technician.TechnicianDashboardActivity;
 
@@ -131,6 +132,13 @@ public class RegisterActivity extends AppCompatActivity {
                                         if (dbTask.isSuccessful()) {
                                             // Cache user to local SQLite
                                             mDbHelper.insertOrUpdateUser(user);
+
+                                            // If registering as a technician, auto-create technician collection document
+                                            if ("Technician".equalsIgnoreCase(role)) {
+                                                String branchId = (address != null && address.toLowerCase().contains("galle")) ? "galle" : "colombo";
+                                                Technician tech = new Technician(uid, name, "General", branchId, true);
+                                                mFirestore.collection("technicians").document(uid).set(tech);
+                                            }
 
                                             Toast.makeText(RegisterActivity.this, "Registration Successful!", Toast.LENGTH_SHORT).show();
                                             navigateToDashboard(role);

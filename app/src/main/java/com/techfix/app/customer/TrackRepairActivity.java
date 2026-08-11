@@ -29,7 +29,7 @@ import java.util.List;
 public class TrackRepairActivity extends AppCompatActivity {
 
     private AutoCompleteTextView ticketAutoComplete;
-    private TextView lblDeviceModel, lblServiceType, lblBranchInfo, noActiveRepairsText;
+    private TextView lblDeviceModel, lblServiceType, lblBranchInfo, lblTechnicianInfo, noActiveRepairsText;
     private LinearLayout contentLayout, timelineContainer;
     private MaterialButton btnProceedToPayment;
 
@@ -77,6 +77,7 @@ public class TrackRepairActivity extends AppCompatActivity {
         lblDeviceModel = findViewById(R.id.lblDeviceModel);
         lblServiceType = findViewById(R.id.lblServiceType);
         lblBranchInfo = findViewById(R.id.lblBranchInfo);
+        lblTechnicianInfo = findViewById(R.id.lblTechnicianInfo);
         noActiveRepairsText = findViewById(R.id.noActiveRepairsText);
         contentLayout = findViewById(R.id.contentLayout);
         timelineContainer = findViewById(R.id.timelineContainer);
@@ -120,23 +121,49 @@ public class TrackRepairActivity extends AppCompatActivity {
             populateTickets();
         }
 
-        // Online sync
+        // Real-time online sync listener
         mFirestore.collection("appointments")
                 .whereEqualTo("customerId", customerId)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null) {
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null) {
+                        return;
+                    }
+                    if (snapshots != null) {
                         List<Appointment> temp = new ArrayList<>();
-                        for (DocumentSnapshot doc : task.getResult()) {
+                        for (DocumentSnapshot doc : snapshots.getDocuments()) {
                             Appointment appt = doc.toObject(Appointment.class);
                             if (appt != null) {
                                 temp.add(appt);
                                 mDbHelper.insertOrUpdateAppointment(appt);
                             }
                         }
+                        
+                        // Handle potential cancellations/deletions on server
+                        if (temp.isEmpty() && !activeAppointments.isEmpty()) {
+                            // If empty on server but we had cache, clear cache and UI
+                            activeAppointments.clear();
+                            selectedAppointment = null;
+                            populateTickets();
+                            return;
+                        }
+
                         if (!temp.isEmpty()) {
+                            // Track previously selected ID to restore selection
+                            String selectedId = selectedAppointment != null ? selectedAppointment.getAppointmentId() : null;
+                            
                             activeAppointments = temp;
                             populateTickets();
+
+                            // Restore selection
+                            if (selectedId != null) {
+                                for (Appointment a : activeAppointments) {
+                                    if (a.getAppointmentId().equals(selectedId)) {
+                                        selectedAppointment = a;
+                                        displayAppointmentTimeline();
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
                 });
@@ -158,10 +185,20 @@ public class TrackRepairActivity extends AppCompatActivity {
             ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, ticketOptions);
             ticketAutoComplete.setAdapter(adapter);
 
-            // Default select first item
-            selectedAppointment = activeAppointments.get(0);
-            ticketAutoComplete.setText(ticketOptions.get(0), false);
-            displayAppointmentTimeline();
+            // Select active or fallback to first item
+            if (selectedAppointment == null) {
+                selectedAppointment = activeAppointments.get(0);
+                ticketAutoComplete.setText(ticketOptions.get(0), false);
+                displayAppointmentTimeline();
+            } else {
+                // Keep dropdown text aligned with current selection
+                for (int i = 0; i < activeAppointments.size(); i++) {
+                    if (activeAppointments.get(i).getAppointmentId().equals(selectedAppointment.getAppointmentId())) {
+                        ticketAutoComplete.setText(ticketOptions.get(i), false);
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -181,7 +218,12 @@ public class TrackRepairActivity extends AppCompatActivity {
 
         lblDeviceModel.setText("Device: " + selectedAppointment.getDeviceModel());
         lblServiceType.setText("Service: " + serviceName);
-        lblBranchInfo.setText("Assigned Branch: " + selectedAppointment.getAssignedBranch());
+        
+        String branch = selectedAppointment.getAssignedBranch();
+        lblBranchInfo.setText("Assigned Branch: " + (branch != null && !branch.trim().isEmpty() ? branch : "Not Assigned"));
+        
+        String tech = selectedAppointment.getAssignedTechnician();
+        lblTechnicianInfo.setText("Assigned Technician: " + (tech != null && !tech.trim().isEmpty() ? tech : "Not Assigned"));
 
         timelineContainer.removeAllViews();
         LayoutInflater inflater = LayoutInflater.from(this);

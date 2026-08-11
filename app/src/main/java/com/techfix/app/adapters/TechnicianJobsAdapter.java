@@ -97,10 +97,15 @@ public class TechnicianJobsAdapter extends RecyclerView.Adapter<TechnicianJobsAd
             jobCustomerText.setText("Client ID: " + appt.getCustomerId().substring(0, 8).toUpperCase());
             jobStatusText.setText(appt.getStatus());
 
-            if (isAdmin) {
-                btnUpdateJob.setText("Allocate");
+            if ("Completed".equalsIgnoreCase(appt.getStatus())) {
+                btnUpdateJob.setVisibility(View.GONE);
             } else {
-                btnUpdateJob.setText("Update status");
+                btnUpdateJob.setVisibility(View.VISIBLE);
+                if (isAdmin) {
+                    btnUpdateJob.setText("Allocate");
+                } else {
+                    btnUpdateJob.setText("Update status");
+                }
             }
 
             btnUpdateJob.setOnClickListener(v -> {

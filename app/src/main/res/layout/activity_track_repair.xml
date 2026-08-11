@@ -106,6 +106,15 @@
                     android:textSize="12sp"
                     android:textColor="@color/textSecondary"
                     android:layout_marginTop="4dp" />
+
+                <TextView
+                    android:id="@+id/lblTechnicianInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Assigned Technician: Loading..."
+                    android:textSize="12sp"
+                    android:textColor="@color/textSecondary"
+                    android:layout_marginTop="4dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

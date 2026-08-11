@@ -90,6 +90,9 @@
         <activity 
             android:name=".admin.AdminAllocateActivity" 
             android:exported="false" />
+        <activity 
+            android:name=".admin.AdminCompletedOrdersActivity" 
+            android:exported="false" />
 
     </application>
 

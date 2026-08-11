@@ -281,16 +281,37 @@
                 </com.google.android.material.chip.ChipGroup>
             </LinearLayout>
 
-            <!-- Services List Header -->
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Services List Header Block -->
+            <RelativeLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Available Services"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/textPrimary"
                 android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="16dp" />
+                android:layout_marginTop="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Available Services"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textPrimary"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true" />
+
+                <TextView
+                    android:id="@+id/txtSeeAllServices"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="See All"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/primaryColor"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:padding="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </RelativeLayout>
 
             <!-- Empty State View -->
             <TextView

@@ -176,12 +176,12 @@ public class PaymentActivity extends AppCompatActivity {
                                 date,
                                 serviceCost,
                                 "Completed", // Mark Paid in local database helper cache!
-                                "Ready for Pickup"
+                                "Completed"
                         );
 
-                        // 2. Update payment status online in appointment document (or update status to Ready for Pickup)
+                        // 2. Update payment status online in appointment document
                         mFirestore.collection("appointments").document(appointmentId)
-                                .update("status", "Ready for Pickup") // Move to Ready for Pickup status after pay
+                                .update("status", "Completed") // Move to Completed status after pay
                                 .addOnCompleteListener(dbTask -> {
                                     showPaymentSuccessDialog();
                                 });

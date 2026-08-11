@@ -58,7 +58,6 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceV
         private final TextView priceText;
         private final TextView durationText;
         private final TextView categoryBadge;
-        private final ImageView serviceImageView;
 
         public ServiceViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -67,7 +66,6 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceV
             priceText = itemView.findViewById(R.id.servicePriceText);
             durationText = itemView.findViewById(R.id.serviceDurationText);
             categoryBadge = itemView.findViewById(R.id.categoryBadge);
-            serviceImageView = itemView.findViewById(R.id.serviceImageView);
         }
 
         public void bind(Service service, OnServiceClickListener listener) {
@@ -80,10 +78,8 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceV
             // Set background color based on category
             if ("Computer".equalsIgnoreCase(service.getCategory())) {
                 categoryBadge.setBackgroundColor(itemView.getContext().getResources().getColor(R.color.primaryLightColor));
-                serviceImageView.setImageResource(android.R.drawable.ic_menu_slideshow); // Computer placeholder
             } else {
                 categoryBadge.setBackgroundColor(itemView.getContext().getResources().getColor(R.color.secondaryColor));
-                serviceImageView.setImageResource(android.R.drawable.ic_menu_call); // Mobile placeholder
             }
 
             itemView.setOnClickListener(v -> {

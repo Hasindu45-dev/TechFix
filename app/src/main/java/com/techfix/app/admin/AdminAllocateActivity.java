@@ -19,6 +19,7 @@ import com.techfix.app.R;
 import com.techfix.app.database.DatabaseHelper;
 import com.techfix.app.models.Appointment;
 import com.techfix.app.models.Technician;
+import com.techfix.app.models.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -127,18 +128,50 @@ public class AdminAllocateActivity extends AppCompatActivity {
     }
 
     private void loadTechniciansList() {
+        mFirestore.collection("users")
+                .whereEqualTo("role", "Technician")
+                .get()
+                .addOnCompleteListener(task -> {
+                    allTechnicians.clear();
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        for (DocumentSnapshot doc : task.getResult()) {
+                            User u = doc.toObject(User.class);
+                            if (u != null) {
+                                // Map User account to Technician object dynamically
+                                String branchId = (u.getAddress() != null && u.getAddress().toLowerCase().contains("galle")) ? "galle" : "colombo";
+                                Technician t = new Technician(u.getUserId(), u.getName(), "General", branchId, true);
+                                allTechnicians.add(t);
+                            }
+                        }
+                    }
+                    // Fetch admin-created technicians from the dedicated collection
+                    fetchAdminCreatedTechnicians();
+                });
+    }
+
+    private void fetchAdminCreatedTechnicians() {
         mFirestore.collection("technicians")
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
-                        allTechnicians.clear();
                         for (DocumentSnapshot doc : task.getResult()) {
                             Technician t = doc.toObject(Technician.class);
-                            if (t != null) allTechnicians.add(t);
+                            if (t != null) {
+                                boolean exists = false;
+                                for (Technician existing : allTechnicians) {
+                                    if (existing.getTechnicianId().equals(t.getTechnicianId())) {
+                                        exists = true;
+                                        break;
+                                    }
+                                }
+                                if (!exists) {
+                                    allTechnicians.add(t);
+                                }
+                            }
                         }
-                        // Default filter
-                        filterTechniciansByBranch(branchAutoComplete.getText().toString());
                     }
+                    // Filter and bind to dropdown
+                    filterTechniciansByBranch(branchAutoComplete.getText().toString());
                 });
     }
 
