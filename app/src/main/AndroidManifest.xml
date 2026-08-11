@@ -57,6 +57,17 @@
             android:name=".admin.AdminDashboardActivity" 
             android:exported="false" />
 
+        <!-- Maps Activity -->
+        <activity 
+            android:name=".maps.BranchLocatorActivity" 
+            android:exported="false" />
+
+        <!-- Booking Activity -->
+        <activity 
+            android:name=".customer.BookAppointmentActivity" 
+            android:exported="false" />
+
     </application>
+
 
 </manifest>

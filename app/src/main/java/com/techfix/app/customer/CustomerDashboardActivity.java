@@ -135,8 +135,12 @@ public class CustomerDashboardActivity extends AppCompatActivity {
         actionBookRepair.setOnClickListener(v -> navigateToBookingFlow(null));
         actionTrackRepair.setOnClickListener(v -> Toast.makeText(this, "Track Repair - Coming in Phase 7", Toast.LENGTH_SHORT).show());
         actionHistory.setOnClickListener(v -> Toast.makeText(this, "Repair History - Coming in Phase 7", Toast.LENGTH_SHORT).show());
-        actionFindBranch.setOnClickListener(v -> Toast.makeText(this, "Find Branch - Coming in Phase 5", Toast.LENGTH_SHORT).show());
+        actionFindBranch.setOnClickListener(v -> {
+            Intent intent = new Intent(CustomerDashboardActivity.this, com.techfix.app.maps.BranchLocatorActivity.class);
+            startActivity(intent);
+        });
     }
+
 
     private void loadUserProfile(String userId) {
         User user = mDbHelper.getUser(userId);
@@ -244,9 +248,13 @@ public class CustomerDashboardActivity extends AppCompatActivity {
     }
 
     private void navigateToBookingFlow(String serviceId) {
-        // Will launch the booking screen in Phase 6. Passing serviceId as an extra.
-        Toast.makeText(this, "Book Request Form - Coming in Phase 6!", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(CustomerDashboardActivity.this, BookAppointmentActivity.class);
+        if (serviceId != null) {
+            intent.putExtra("PREFILLED_SERVICE_ID", serviceId);
+        }
+        startActivity(intent);
     }
+
 
     private void redirectToLogin() {
         Intent intent = new Intent(this, LoginActivity.class);

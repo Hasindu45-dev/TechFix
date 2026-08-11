@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.techfix.app.maps.BranchLocatorActivity">
+
+    <!-- Map Fragment -->
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomCard"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Back Button overlay -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_menu_revert"
+        android:contentDescription="Back"
+        app:fabSize="mini"
+        app:backgroundTint="@color/white"
+        app:tint="@color/primaryColor"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Current Location FAB overlay -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnCurrentLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_menu_mylocation"
+        android:contentDescription="My Location"
+        app:fabSize="normal"
+        app:backgroundTint="@color/white"
+        app:tint="@color/secondaryColor"
+        app:layout_constraintBottom_toTopOf="@id/bottomCard"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Bottom Info Panel -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/bottomCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        app:strokeWidth="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TechFix Repair Branches"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/primaryColor" />
+
+            <TextView
+                android:id="@+id/locationStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Acquiring GPS location..."
+                android:textSize="12sp"
+                android:textColor="@color/textSecondary"
+                android:layout_marginTop="4dp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/dividerColor"
+                android:layout_marginVertical="12dp" />
+
+            <!-- Colombo Branch Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingVertical="4dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_dialog_map"
+                    app:tint="@color/primaryLightColor" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TechFix Colombo Branch"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/textPrimary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="123 Galle Road, Colombo 03"
+                        android:textSize="12sp"
+                        android:textColor="@color/textSecondary" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/colomboDistanceText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Calculating..."
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/secondaryColor" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/dividerColor"
+                android:layout_marginVertical="12dp" />
+
+            <!-- Galle Branch Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingVertical="4dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_dialog_map"
+                    app:tint="@color/primaryLightColor" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TechFix Galle Branch"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/textPrimary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="45 Marine Drive, Galle"
+                        android:textSize="12sp"
+                        android:textColor="@color/textSecondary" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/galleDistanceText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Calculating..."
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/secondaryColor" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+</androidx.constraintlayout.widget.ConstraintLayout>
