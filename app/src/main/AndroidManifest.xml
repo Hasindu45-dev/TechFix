@@ -83,7 +83,16 @@
             android:name=".technician.TechnicianJobDetailActivity" 
             android:exported="false" />
 
+        <!-- Admin Management Activities -->
+        <activity 
+            android:name=".admin.AdminManageDataActivity" 
+            android:exported="false" />
+        <activity 
+            android:name=".admin.AdminAllocateActivity" 
+            android:exported="false" />
+
     </application>
+
 
 
 

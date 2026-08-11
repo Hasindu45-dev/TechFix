@@ -22,10 +22,16 @@ public class TechnicianJobsAdapter extends RecyclerView.Adapter<TechnicianJobsAd
     private List<Appointment> appointments = new ArrayList<>();
     private List<Service> services = new ArrayList<>();
     private OnJobClickListener listener;
+    private boolean isAdmin = false;
 
     public interface OnJobClickListener {
         void onJobClick(Appointment appointment);
     }
+
+    public void setIsAdmin(boolean flag) {
+        this.isAdmin = flag;
+    }
+
 
     public void setJobs(List<Appointment> list, List<Service> services) {
         this.appointments = list;
@@ -47,7 +53,7 @@ public class TechnicianJobsAdapter extends RecyclerView.Adapter<TechnicianJobsAd
     @Override
     public void onBindViewHolder(@NonNull JobViewHolder holder, int position) {
         Appointment appt = appointments.get(position);
-        holder.bind(appt, services, listener);
+        holder.bind(appt, services, listener, isAdmin);
     }
 
     @Override
@@ -71,7 +77,7 @@ public class TechnicianJobsAdapter extends RecyclerView.Adapter<TechnicianJobsAd
             btnUpdateJob = itemView.findViewById(R.id.btnUpdateJob);
         }
 
-        public void bind(Appointment appt, List<Service> services, OnJobClickListener listener) {
+        public void bind(Appointment appt, List<Service> services, OnJobClickListener listener, boolean isAdmin) {
             jobIdText.setText("TICKET: #" + appt.getAppointmentId().substring(0, 8).toUpperCase());
             jobDateText.setText("Date: " + appt.getDate());
             jobDeviceText.setText(appt.getDeviceModel());
@@ -90,6 +96,12 @@ public class TechnicianJobsAdapter extends RecyclerView.Adapter<TechnicianJobsAd
             // For this view, we display the customer's ID and contact detail fallback.
             jobCustomerText.setText("Client ID: " + appt.getCustomerId().substring(0, 8).toUpperCase());
             jobStatusText.setText(appt.getStatus());
+
+            if (isAdmin) {
+                btnUpdateJob.setText("Allocate");
+            } else {
+                btnUpdateJob.setText("Update status");
+            }
 
             btnUpdateJob.setOnClickListener(v -> {
                 if (listener != null) {

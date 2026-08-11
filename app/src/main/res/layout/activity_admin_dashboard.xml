@@ -1,56 +1,198 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.constraintlayout.widget.ConstraintLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp"
-    android:background="@color/backgroundColor"
+    android:background="@color/surfaceColor"
     tools:context="com.techfix.app.admin.AdminDashboardActivity">
 
+    <!-- AppBar/Header -->
+    <RelativeLayout
+        android:id="@+id/headerBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/primaryColor"
+        android:padding="24dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/adminTitleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TechFix Admin Terminal"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/adminSubtitleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Central Management Operations"
+            android:textSize="13sp"
+            android:textColor="@color/secondaryLightColor"
+            android:layout_below="@id/adminTitleText"
+            android:layout_marginTop="2dp" />
+
+        <ImageView
+            android:id="@+id/adminLogoutIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:src="@android:drawable/ic_lock_power_off"
+            android:contentDescription="Log Out"
+            app:tint="@color/white" />
+    </RelativeLayout>
+
+    <!-- Grid of CRUD Controls -->
+    <GridLayout
+        android:id="@+id/crudGrid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="2"
+        android:rowCount="2"
+        android:padding="12dp"
+        app:layout_constraintTop_toBottomOf="@id/headerBar">
+
+        <!-- Branches Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardManageBranches"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="6dp"
+            app:cardCornerRadius="8dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/dividerColor">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🏢 Branches"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textPrimary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Services Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardManageServices"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="6dp"
+            app:cardCornerRadius="8dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/dividerColor">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🛠️ Services"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textPrimary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Technicians Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardManageTechnicians"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="6dp"
+            app:cardCornerRadius="8dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/dividerColor">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="👨‍🔧 Technicians"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textPrimary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Spare Parts Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardManageParts"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="6dp"
+            app:cardCornerRadius="8dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/dividerColor">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⚙️ Spare Parts"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textPrimary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </GridLayout>
+
+    <!-- Subtitle section -->
     <TextView
-        android:id="@+id/dashboardTitle"
+        android:id="@+id/adminListTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Admin Dashboard"
-        android:textSize="28sp"
+        android:text="Active Repair Assignments"
+        android:textSize="16sp"
         android:textStyle="bold"
-        android:textColor="@color/primaryColor"
-        android:layout_marginTop="32dp"
-        app:layout_constraintTop_toTopOf="parent"
+        android:textColor="@color/textPrimary"
+        android:layout_margin="16dp"
+        app:layout_constraintTop_toBottomOf="@id/crudGrid"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/adminRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/adminListTitle"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:listitem="@android:layout/simple_list_item_2" />
+
+    <!-- Empty State -->
     <TextView
-        android:id="@+id/welcomeUserText"
+        android:id="@+id/noAdminJobsText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Welcome, Administrator!"
-        android:textSize="18sp"
-        android:textColor="@color/textPrimary"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/dashboardTitle"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/tempMessage"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="You are logged in as an Admin. Management views for branches, technicians, services, and parts will be added here."
-        android:textSize="14sp"
+        android:text="No repair tickets registered in the database."
         android:textColor="@color/textSecondary"
-        android:layout_marginTop="24dp"
-        app:layout_constraintTop_toBottomOf="@id/welcomeUserText" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/logoutButton"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="Log Out"
-        android:backgroundTint="@color/secondaryColor"
-        android:textColor="@color/white"
-        app:cornerRadius="8dp"
-        android:layout_marginBottom="32dp"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        android:textSize="14sp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

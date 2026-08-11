@@ -2,87 +2,133 @@ package com.techfix.app.admin;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.techfix.app.R;
+import com.techfix.app.adapters.TechnicianJobsAdapter;
 import com.techfix.app.authentication.LoginActivity;
 import com.techfix.app.database.DatabaseHelper;
-import com.techfix.app.models.User;
+import com.techfix.app.models.Appointment;
+import com.techfix.app.models.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AdminDashboardActivity extends AppCompatActivity {
 
-    private TextView welcomeUserText;
-    private MaterialButton logoutButton;
+    private MaterialCardView cardManageBranches, cardManageServices, cardManageTechnicians, cardManageParts;
+    private RecyclerView adminRecyclerView;
+    private TextView noAdminJobsText;
+    private ImageView logoutIcon;
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
     private DatabaseHelper mDbHelper;
+
+    private TechnicianJobsAdapter adapter;
+    private List<Appointment> appointmentsList = new ArrayList<>();
+    private List<Service> servicesList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_dashboard);
 
-        welcomeUserText = findViewById(R.id.welcomeUserText);
-        logoutButton = findViewById(R.id.logoutButton);
-
         mAuth = FirebaseAuth.getInstance();
         mFirestore = FirebaseFirestore.getInstance();
         mDbHelper = new DatabaseHelper(this);
 
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
-            redirectToLogin();
-            return;
-        }
+        // Bind dashboard shortcut cards
+        cardManageBranches = findViewById(R.id.cardManageBranches);
+        cardManageServices = findViewById(R.id.cardManageServices);
+        cardManageTechnicians = findViewById(R.id.cardManageTechnicians);
+        cardManageParts = findViewById(R.id.cardManageParts);
+        adminRecyclerView = findViewById(R.id.adminRecyclerView);
+        noAdminJobsText = findViewById(R.id.noAdminJobsText);
+        logoutIcon = findViewById(R.id.adminLogoutIcon);
 
-        loadUserData(currentUser.getUid());
+        // RecyclerView setup
+        adminRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new TechnicianJobsAdapter();
+        adapter.setIsAdmin(true); // Flag to change action button text to "Allocate"
+        adminRecyclerView.setAdapter(adapter);
 
-        logoutButton.setOnClickListener(v -> {
+        // Setup CRUD Click Listeners
+        cardManageBranches.setOnClickListener(v -> launchCrud("branches"));
+        cardManageServices.setOnClickListener(v -> launchCrud("services"));
+        cardManageTechnicians.setOnClickListener(v -> launchCrud("technicians"));
+        cardManageParts.setOnClickListener(v -> launchCrud("spare_parts"));
+
+        logoutIcon.setOnClickListener(v -> {
             mAuth.signOut();
-            Toast.makeText(AdminDashboardActivity.this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Admin logged out successfully", Toast.LENGTH_SHORT).show();
             redirectToLogin();
         });
+
+        // Click on job card opens the manual technician allocation view
+        adapter.setOnJobClickListener(appt -> {
+            Intent intent = new Intent(AdminDashboardActivity.this, AdminAllocateActivity.class);
+            intent.putExtra("APPOINTMENT_ID", appt.getAppointmentId());
+            startActivity(intent);
+        });
+
+        loadAllAppointments();
     }
 
-    private void loadUserData(String userId) {
-        // Try local SQLite cache first
-        User cachedUser = mDbHelper.getUser(userId);
-        if (cachedUser != null) {
-            welcomeUserText.setText("Welcome, " + cachedUser.getName() + " (Admin)!");
-        }
+    private void launchCrud(String type) {
+        Intent intent = new Intent(AdminDashboardActivity.this, AdminManageDataActivity.class);
+        intent.putExtra("MANAGE_TYPE", type);
+        startActivity(intent);
+    }
 
-        // Always sync online with Firestore
-        mFirestore.collection("users").document(userId)
+    private void loadAllAppointments() {
+        servicesList = mDbHelper.getAllServices();
+
+        mFirestore.collection("appointments")
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
-                        DocumentSnapshot document = task.getResult();
-                        if (document.exists()) {
-                            User user = document.toObject(User.class);
-                            if (user != null) {
-                                // Cache to SQLite
-                                mDbHelper.insertOrUpdateUser(user);
-                                // Update UI
-                                welcomeUserText.setText("Welcome, " + user.getName() + " (Admin)!");
+                        appointmentsList.clear();
+                        for (DocumentSnapshot doc : task.getResult()) {
+                            Appointment appt = doc.toObject(Appointment.class);
+                            if (appt != null) {
+                                appointmentsList.add(appt);
+                                mDbHelper.insertOrUpdateAppointment(appt);
                             }
                         }
+                        adapter.setJobs(appointmentsList, servicesList);
+                        noAdminJobsText.setVisibility(appointmentsList.isEmpty() ? View.VISIBLE : View.GONE);
+                    } else {
+                        // Offline caching fallback
+                        List<Appointment> cached = mDbHelper.getAppointmentsForCustomer("");
+                        appointmentsList = cached;
+                        adapter.setJobs(appointmentsList, servicesList);
+                        noAdminJobsText.setVisibility(appointmentsList.isEmpty() ? View.VISIBLE : View.GONE);
                     }
                 });
     }
 
     private void redirectToLogin() {
-        Intent intent = new Intent(AdminDashboardActivity.this, LoginActivity.class);
+        Intent intent = new Intent(this, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadAllAppointments();
     }
 }
