@@ -120,7 +120,7 @@ public class RegisterActivity extends AppCompatActivity {
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
                         if (firebaseUser != null) {
                             String uid = firebaseUser.getUid();
-                            User user = new User(uid, name, email, phone, role);
+                            User user = new User(uid, name, email, phone, role, address);
 
                             // Save user to Firestore
                             mFirestore.collection("users").document(uid)

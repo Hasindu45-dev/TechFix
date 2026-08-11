@@ -78,7 +78,13 @@
             android:name=".customer.PaymentActivity" 
             android:exported="false" />
 
+        <!-- Technician Job Detail Activity -->
+        <activity 
+            android:name=".technician.TechnicianJobDetailActivity" 
+            android:exported="false" />
+
     </application>
+
 
 
 

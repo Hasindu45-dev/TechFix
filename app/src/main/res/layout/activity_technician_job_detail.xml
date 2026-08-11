@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/backgroundColor"
+    tools:context="com.techfix.app.technician.TechnicianJobDetailActivity">
+
+    <!-- AppBar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent">
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/primaryColor"
+            app:title="Update Job Progress"
+            app:titleTextColor="@color/white" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/appBar"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Ticket ID Header -->
+            <TextView
+                android:id="@+id/detailJobId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TICKET ID: #12345"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/textSecondary" />
+
+            <!-- Device Summary -->
+            <TextView
+                android:id="@+id/detailDeviceModel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dell Latitude 5490"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/textPrimary"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/detailServiceName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Laptop Screen Repair"
+                android:textSize="15sp"
+                android:textColor="@color/primaryLightColor"
+                android:layout_marginTop="2dp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/dividerColor"
+                android:layout_marginVertical="16dp" />
+
+            <!-- Customer Card -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CUSTOMER INFORMATION"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/textSecondary" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/dividerColor">
+                
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/detailCustName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Amal Silva"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/textPrimary" />
+
+                    <TextView
+                        android:id="@+id/detailCustPhone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Phone: 0771234567"
+                        android:textSize="13sp"
+                        android:textColor="@color/textSecondary"
+                        android:layout_marginTop="4dp" />
+
+                    <TextView
+                        android:id="@+id/detailCustAddress"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Address: Colombo, Sri Lanka"
+                        android:textSize="13sp"
+                        android:textColor="@color/textSecondary"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Issue Description -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PROBLEM DESCRIPTION"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/textSecondary"
+                android:layout_marginTop="20dp" />
+
+            <TextView
+                android:id="@+id/detailProblemDesc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Screen is cracked and flickering when tilting the screen lid. Needs panel replacement."
+                android:textSize="14sp"
+                android:textColor="@color/textPrimary"
+                android:layout_marginTop="8dp"
+                android:background="@color/surfaceColor"
+                android:padding="12dp" />
+
+            <!-- Device Photo -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ATTACHED DEVICE PHOTO"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/textSecondary"
+                android:layout_marginTop="20dp" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="160dp"
+                android:layout_height="120dp"
+                android:layout_marginTop="8dp"
+                app:cardCornerRadius="8dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/dividerColor">
+                <ImageView
+                    android:id="@+id/detailDeviceImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@android:drawable/ic_menu_report_image" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/dividerColor"
+                android:layout_marginVertical="16dp" />
+
+            <!-- Update Status Dropdown Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="UPDATE REPAIR PROGRESS"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/textSecondary" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/statusSelectLayout"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Select Current Status"
+                app:boxStrokeColor="@color/primaryColor"
+                app:hintTextColor="@color/primaryColor">
+
+                <AutoCompleteTextView
+                    android:id="@+id/statusAutoComplete"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:textColor="@color/textPrimary" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Save button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSaveProgress"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Save Progress"
+                android:textSize="16sp"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/primaryColor"
+                app:cornerRadius="8dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="32dp" />
+
+            <ProgressBar
+                android:id="@+id/detailProgressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:indeterminateTint="@color/secondaryColor" />
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

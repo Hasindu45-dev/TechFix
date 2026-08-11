@@ -1,56 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.constraintlayout.widget.ConstraintLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp"
-    android:background="@color/backgroundColor"
+    android:background="@color/surfaceColor"
     tools:context="com.techfix.app.technician.TechnicianDashboardActivity">
 
+    <!-- AppBar/Header -->
+    <RelativeLayout
+        android:id="@+id/headerBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/primaryColor"
+        android:padding="24dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/technicianNameText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome, Technician!"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/technicianBranchText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Branch: Colombo Office"
+            android:textSize="13sp"
+            android:textColor="@color/secondaryLightColor"
+            android:layout_below="@id/technicianNameText"
+            android:layout_marginTop="2dp" />
+
+        <ImageView
+            android:id="@+id/logoutIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:src="@android:drawable/ic_lock_power_off"
+            android:contentDescription="Log Out"
+            app:tint="@color/white" />
+    </RelativeLayout>
+
+    <!-- Subtitle section -->
     <TextView
-        android:id="@+id/dashboardTitle"
+        android:id="@+id/jobListTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Technician Dashboard"
-        android:textSize="28sp"
+        android:text="Assigned Repair Jobs"
+        android:textSize="16sp"
         android:textStyle="bold"
-        android:textColor="@color/primaryColor"
-        android:layout_marginTop="32dp"
-        app:layout_constraintTop_toTopOf="parent"
+        android:textColor="@color/textPrimary"
+        android:layout_margin="16dp"
+        app:layout_constraintTop_toBottomOf="@id/headerBar"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/jobsRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/jobListTitle"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:listitem="@android:layout/simple_list_item_2" />
+
+    <!-- Empty State -->
     <TextView
-        android:id="@+id/welcomeUserText"
+        android:id="@+id/noJobsText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Welcome, Technician!"
-        android:textSize="18sp"
-        android:textColor="@color/textPrimary"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/dashboardTitle"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/tempMessage"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="You are logged in as a Technician. Assigned repairs and update status features will be added here."
-        android:textSize="14sp"
+        android:text="No repair jobs assigned to your branch yet."
         android:textColor="@color/textSecondary"
-        android:layout_marginTop="24dp"
-        app:layout_constraintTop_toBottomOf="@id/welcomeUserText" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/logoutButton"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="Log Out"
-        android:backgroundTint="@color/secondaryColor"
-        android:textColor="@color/white"
-        app:cornerRadius="8dp"
-        android:layout_marginBottom="32dp"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        android:textSize="14sp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
