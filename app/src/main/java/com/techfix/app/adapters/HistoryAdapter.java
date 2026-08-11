@@ -77,10 +77,10 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
             // Color code payment status
             if ("Completed".equalsIgnoreCase(record.paymentStatus) || "Paid".equalsIgnoreCase(record.paymentStatus)) {
                 paymentStatus.setText("PAID");
-                paymentStatus.setBackgroundColor(itemView.getContext().getColor(android.R.color.holo_green_dark));
+                paymentStatus.setBackgroundColor(itemView.getContext().getResources().getColor(R.color.successColor));
             } else {
                 paymentStatus.setText("UNPAID");
-                paymentStatus.setBackgroundColor(itemView.getContext().getColor(android.R.color.holo_orange_dark));
+                paymentStatus.setBackgroundColor(itemView.getContext().getResources().getColor(R.color.warningColor));
             }
         }
     }

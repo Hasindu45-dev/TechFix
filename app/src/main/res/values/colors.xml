@@ -1,22 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Core Brand Colors -->
-    <color name="primaryColor">#0F2537</color>     <!-- Dark Blue -->
-    <color name="primaryLightColor">#1D3557</color>
-    <color name="primaryDarkColor">#081426</color>
-    <color name="secondaryColor">#F77F00</color>   <!-- Orange -->
-    <color name="secondaryLightColor">#FF9F1C</color>
-    <color name="secondaryDarkColor">#D65A00</color>
+    <!-- Core Brand Colors (Purple & Mint Green Theme) -->
+    <color name="primaryColor">#9D65E6</color>     <!-- Modern Violet/Purple -->
+    <color name="primaryLightColor">#D8B4FE</color> <!-- Soft Lilac -->
+    <color name="primaryDarkColor">#6D28D9</color>  <!-- Deep Royal Purple -->
+    <color name="secondaryColor">#8DE8B5</color>   <!-- Mint Green -->
+    <color name="secondaryLightColor">#BBF7D0</color> <!-- Soft Light Mint -->
+    <color name="secondaryDarkColor">#22C55E</color>  <!-- Vibrant Emerald -->
     
     <!-- Neutral Colors -->
-    <color name="backgroundColor">#FFFFFF</color>
-    <color name="surfaceColor">#F8F9FA</color>
-    <color name="errorColor">#D00000</color>
+     <color name="backgroundColor">#F7F2FE</color>  <!-- Warm Rose-Beige Background -->
+    <color name="surfaceColor">#FFFFFF</color>     <!-- Pure White Cards -->
+    <color name="errorColor">#EF4444</color>       <!-- Red Accent -->
+    
+    <!-- Premium Status Colors -->
+    <color name="successColor">#8DE8B5</color>     <!-- Mint Green for positive actions -->
+    <color name="warningColor">#FA8C84</color>     <!-- Coral Red / Amber Alert -->
     
     <!-- Text Colors -->
-    <color name="textPrimary">#1E293B</color>
-    <color name="textSecondary">#64748B</color>
+    <color name="textPrimary">#3B0764</color>      <!-- Deep Violet Charcoal -->
+    <color name="textSecondary">#8B5CF6</color>    <!-- Soft Purple Secondary Text -->
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
-    <color name="dividerColor">#E2E8F0</color>
+    <color name="dividerColor">#EDE9FE</color>
 </resources>
