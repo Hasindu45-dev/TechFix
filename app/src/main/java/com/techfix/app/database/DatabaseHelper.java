@@ -8,7 +8,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.techfix.app.models.Appointment;
 import com.techfix.app.models.Branch;
+import com.techfix.app.models.RequiredPart;
 import com.techfix.app.models.Service;
+import com.techfix.app.models.SparePart;
 import com.techfix.app.models.User;
 
 import java.util.ArrayList;
@@ -17,7 +19,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "techfix_offline.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     // Table names
     private static final String TABLE_USERS = "users";
@@ -25,6 +27,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_SERVICES = "services";
     private static final String TABLE_APPOINTMENTS = "appointments";
     private static final String TABLE_REPAIR_HISTORY = "repair_history";
+    private static final String TABLE_SPARE_PARTS = "spare_parts";
 
     // Common column name
     private static final String KEY_ID = "id";
@@ -48,6 +51,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COL_SERVICE_PRICE = "price";
     private static final String COL_SERVICE_DURATION = "duration";
     private static final String COL_SERVICE_IMAGE = "image_url";
+    private static final String COL_SERVICE_REQUIRED_PARTS = "required_parts";
+
+    // SPARE PARTS Table columns
+    private static final String COL_PART_NAME = "name";
+    private static final String COL_PART_DESC = "description";
+    private static final String COL_PART_CATEGORY = "category";
+    private static final String COL_PART_PRICE = "price";
+    private static final String COL_PART_QTY = "quantity";
+    private static final String COL_PART_BRANCH_ID = "branch_id";
+    private static final String COL_PART_MIN_STOCK = "minimum_stock_level";
 
     // APPOINTMENTS Table columns
     private static final String COL_APPT_CUSTOMER_ID = "customer_id";
@@ -103,8 +116,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COL_SERVICE_DESC + " TEXT,"
                 + COL_SERVICE_PRICE + " REAL,"
                 + COL_SERVICE_DURATION + " TEXT,"
-                + COL_SERVICE_IMAGE + " TEXT" + ")";
+                + COL_SERVICE_IMAGE + " TEXT,"
+                + COL_SERVICE_REQUIRED_PARTS + " TEXT" + ")";
         db.execSQL(CREATE_SERVICES_TABLE);
+
+        // Create Spare Parts Table
+        String CREATE_SPARE_PARTS_TABLE = "CREATE TABLE " + TABLE_SPARE_PARTS + "("
+                + KEY_ID + " TEXT PRIMARY KEY,"
+                + COL_PART_NAME + " TEXT,"
+                + COL_PART_DESC + " TEXT,"
+                + COL_PART_CATEGORY + " TEXT,"
+                + COL_PART_PRICE + " REAL,"
+                + COL_PART_QTY + " INTEGER,"
+                + COL_PART_BRANCH_ID + " TEXT,"
+                + COL_PART_MIN_STOCK + " INTEGER" + ")";
+        db.execSQL(CREATE_SPARE_PARTS_TABLE);
 
         // Create Appointments Table
         String CREATE_APPOINTMENTS_TABLE = "CREATE TABLE " + TABLE_APPOINTMENTS + "("
@@ -142,6 +168,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_SERVICES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_APPOINTMENTS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_REPAIR_HISTORY);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_SPARE_PARTS);
         onCreate(db);
     }
 
@@ -229,6 +256,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COL_SERVICE_PRICE, service.getPrice());
         values.put(COL_SERVICE_DURATION, service.getDuration());
         values.put(COL_SERVICE_IMAGE, service.getImageURL());
+        values.put(COL_SERVICE_REQUIRED_PARTS, requiredPartsToJson(service.getRequiredParts()));
 
         db.insertWithOnConflict(TABLE_SERVICES, null, values, SQLiteDatabase.CONFLICT_REPLACE);
     }
@@ -249,11 +277,122 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             cursor.getString(cursor.getColumnIndexOrThrow(COL_SERVICE_DURATION)),
                             cursor.getString(cursor.getColumnIndexOrThrow(COL_SERVICE_IMAGE))
                     );
+                    String partsJson = cursor.getString(cursor.getColumnIndexOrThrow(COL_SERVICE_REQUIRED_PARTS));
+                    service.setRequiredParts(jsonToRequiredParts(partsJson));
                     serviceList.add(service);
                 } while (cursor.moveToNext());
             }
         }
         return serviceList;
+    }
+
+    // --- JSON SERIALIZERS FOR REQUIRED PARTS ---
+
+    public static String requiredPartsToJson(List<RequiredPart> list) {
+        if (list == null) return "[]";
+        org.json.JSONArray array = new org.json.JSONArray();
+        for (RequiredPart rp : list) {
+            try {
+                org.json.JSONObject obj = new org.json.JSONObject();
+                obj.put("partName", rp.getPartName());
+                obj.put("quantity", rp.getQuantity());
+                array.put(obj);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return array.toString();
+    }
+
+    public static List<RequiredPart> jsonToRequiredParts(String jsonStr) {
+        List<RequiredPart> list = new ArrayList<>();
+        if (jsonStr == null || jsonStr.isEmpty()) return list;
+        try {
+            org.json.JSONArray array = new org.json.JSONArray(jsonStr);
+            for (int i = 0; i < array.length(); i++) {
+                org.json.JSONObject obj = array.getJSONObject(i);
+                list.add(new RequiredPart(obj.getString("partName"), obj.getInt("quantity")));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // --- SPARE PARTS CRUD ---
+
+    public void clearSparePartsTable() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_SPARE_PARTS, null, null);
+    }
+
+    public void insertOrUpdateSparePart(SparePart part) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_ID, part.getPartId());
+        values.put(COL_PART_NAME, part.getName());
+        values.put(COL_PART_DESC, part.getDescription());
+        values.put(COL_PART_CATEGORY, part.getCategory());
+        values.put(COL_PART_PRICE, part.getPrice());
+        values.put(COL_PART_QTY, part.getQuantity());
+        values.put(COL_PART_BRANCH_ID, part.getBranchId());
+        values.put(COL_PART_MIN_STOCK, part.getMinimumStockLevel());
+
+        db.insertWithOnConflict(TABLE_SPARE_PARTS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+    }
+
+    public List<SparePart> getAllSpareParts() {
+        List<SparePart> partList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "SELECT * FROM " + TABLE_SPARE_PARTS;
+        try (Cursor cursor = db.rawQuery(selectQuery, null)) {
+            if (cursor.moveToFirst()) {
+                do {
+                    SparePart part = new SparePart(
+                            cursor.getString(cursor.getColumnIndexOrThrow(KEY_ID)),
+                            cursor.getString(cursor.getColumnIndexOrThrow(COL_PART_NAME)),
+                            cursor.getInt(cursor.getColumnIndexOrThrow(COL_PART_QTY)),
+                            cursor.getDouble(cursor.getColumnIndexOrThrow(COL_PART_PRICE)),
+                            cursor.getString(cursor.getColumnIndexOrThrow(COL_PART_BRANCH_ID)),
+                            cursor.getString(cursor.getColumnIndexOrThrow(COL_PART_DESC)),
+                            cursor.getString(cursor.getColumnIndexOrThrow(COL_PART_CATEGORY)),
+                            cursor.getInt(cursor.getColumnIndexOrThrow(COL_PART_MIN_STOCK)),
+                            "", // imageURL optional for offline cache
+                            0, // createdAt
+                            0  // updatedAt
+                    );
+                    partList.add(part);
+                } while (cursor.moveToNext());
+            }
+        }
+        return partList;
+    }
+
+    public List<SparePart> getSparePartsForBranch(String branchId) {
+        List<SparePart> partList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "SELECT * FROM " + TABLE_SPARE_PARTS + " WHERE " + COL_PART_BRANCH_ID + " = ?";
+        try (Cursor cursor = db.rawQuery(selectQuery, new String[]{branchId})) {
+            if (cursor.moveToFirst()) {
+                do {
+                    SparePart part = new SparePart(
+                            cursor.getString(cursor.getColumnIndexOrThrow(KEY_ID)),
+                            cursor.getString(cursor.getColumnIndexOrThrow(COL_PART_NAME)),
+                            cursor.getInt(cursor.getColumnIndexOrThrow(COL_PART_QTY)),
+                            cursor.getDouble(cursor.getColumnIndexOrThrow(COL_PART_PRICE)),
+                            cursor.getString(cursor.getColumnIndexOrThrow(COL_PART_BRANCH_ID)),
+                            cursor.getString(cursor.getColumnIndexOrThrow(COL_PART_DESC)),
+                            cursor.getString(cursor.getColumnIndexOrThrow(COL_PART_CATEGORY)),
+                            cursor.getInt(cursor.getColumnIndexOrThrow(COL_PART_MIN_STOCK)),
+                            "", // imageURL
+                            0,
+                            0
+                    );
+                    partList.add(part);
+                } while (cursor.moveToNext());
+            }
+        }
+        return partList;
     }
 
     public List<Service> searchServices(String query) {

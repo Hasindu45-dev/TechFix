@@ -12,17 +12,24 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.WriteBatch;
 import com.techfix.app.R;
+import com.techfix.app.adapters.TechRequiredPartsAdapter;
 import com.techfix.app.database.DatabaseHelper;
 import com.techfix.app.models.Appointment;
+import com.techfix.app.models.RequiredPart;
 import com.techfix.app.models.Service;
+import com.techfix.app.models.SparePart;
 import com.techfix.app.models.User;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TechnicianJobDetailActivity extends AppCompatActivity {
@@ -31,8 +38,13 @@ public class TechnicianJobDetailActivity extends AppCompatActivity {
     private ImageView detailDeviceImage;
     private MaterialCardView detailImageCard;
     private AutoCompleteTextView statusAutoComplete;
-    private MaterialButton btnSaveProgress;
+    private MaterialButton btnSaveProgress, btnMarkPartUsed;
     private ProgressBar progressBar;
+    private RecyclerView techRequiredPartsRecyclerView;
+
+    private TechRequiredPartsAdapter techRequiredPartsAdapter;
+    private List<SparePart> branchPartsList = new ArrayList<>();
+    private Service linkedService;
 
     private FirebaseFirestore mFirestore;
     private DatabaseHelper mDbHelper;
@@ -82,6 +94,12 @@ public class TechnicianJobDetailActivity extends AppCompatActivity {
         statusAutoComplete = findViewById(R.id.statusAutoComplete);
         btnSaveProgress = findViewById(R.id.btnSaveProgress);
         progressBar = findViewById(R.id.detailProgressBar);
+        techRequiredPartsRecyclerView = findViewById(R.id.techRequiredPartsRecyclerView);
+        btnMarkPartUsed = findViewById(R.id.btnMarkPartUsed);
+
+        techRequiredPartsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        techRequiredPartsAdapter = new TechRequiredPartsAdapter();
+        techRequiredPartsRecyclerView.setAdapter(techRequiredPartsAdapter);
 
         // Setup progress spinner dropdown
         ArrayAdapter<String> statusAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, PROGRESS_STATUSES);
@@ -90,6 +108,7 @@ public class TechnicianJobDetailActivity extends AppCompatActivity {
         loadJobDetails();
 
         btnSaveProgress.setOnClickListener(v -> handleSaveProgress());
+        btnMarkPartUsed.setOnClickListener(v -> handleMarkPartsUsed());
     }
 
     private void loadJobDetails() {
@@ -162,6 +181,157 @@ public class TechnicianJobDetailActivity extends AppCompatActivity {
 
         // Load customer contact details
         loadCustomerContact(appointment.getCustomerId());
+
+        // Load service required parts and branch spare parts
+        mFirestore.collection("services").document(appointment.getServiceId()).get()
+                .addOnSuccessListener(serviceDoc -> {
+                    if (serviceDoc.exists()) {
+                        linkedService = serviceDoc.toObject(Service.class);
+                    }
+                    loadBranchSpareParts();
+                })
+                .addOnFailureListener(e -> {
+                    // Fallback to local cache
+                    for (Service s : servicesList) {
+                        if (s.getServiceId().equalsIgnoreCase(appointment.getServiceId())) {
+                            linkedService = s;
+                            break;
+                        }
+                    }
+                    loadBranchSpareParts();
+                });
+    }
+
+    private void loadBranchSpareParts() {
+        if (appointment == null) return;
+        
+        String branchId = "galle".equalsIgnoreCase(appointment.getAssignedBranch()) || "TechFix Galle".equalsIgnoreCase(appointment.getAssignedBranch()) ? "galle" : "colombo";
+
+        // Fetch online first
+        mFirestore.collection("spareParts").whereEqualTo("branchId", branchId).get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    branchPartsList.clear();
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        SparePart sp = doc.toObject(SparePart.class);
+                        if (sp != null) {
+                            branchPartsList.add(sp);
+                        }
+                    }
+                    updatePartsUI();
+                })
+                .addOnFailureListener(e -> {
+                    // Fallback to SQLite cache
+                    branchPartsList = mDbHelper.getSparePartsForBranch(branchId);
+                    updatePartsUI();
+                });
+    }
+
+    private void updatePartsUI() {
+        if (linkedService == null || linkedService.getRequiredParts() == null || linkedService.getRequiredParts().isEmpty()) {
+            findViewById(R.id.lblTechRequiredParts).setVisibility(View.GONE);
+            techRequiredPartsRecyclerView.setVisibility(View.GONE);
+            btnMarkPartUsed.setVisibility(View.GONE);
+            return;
+        }
+
+        findViewById(R.id.lblTechRequiredParts).setVisibility(View.VISIBLE);
+        techRequiredPartsRecyclerView.setVisibility(View.VISIBLE);
+        btnMarkPartUsed.setVisibility(View.VISIBLE);
+
+        techRequiredPartsAdapter.setData(linkedService.getRequiredParts(), branchPartsList);
+
+        // Check if already completed/used
+        if ("Repair Completed".equalsIgnoreCase(appointment.getStatus())
+                || "Ready for Pickup".equalsIgnoreCase(appointment.getStatus())
+                || "Completed".equalsIgnoreCase(appointment.getStatus())) {
+            btnMarkPartUsed.setEnabled(false);
+            btnMarkPartUsed.setText("Parts Already Marked As Used");
+        } else {
+            // Check if any part is out of stock (available < required)
+            boolean hasShortage = false;
+            for (RequiredPart req : linkedService.getRequiredParts()) {
+                int available = 0;
+                for (SparePart sp : branchPartsList) {
+                    if (sp.getName() != null && sp.getName().equalsIgnoreCase(req.getPartName())) {
+                        available = sp.getQuantity();
+                        break;
+                    }
+                }
+                if (available < req.getQuantity()) {
+                    hasShortage = true;
+                    break;
+                }
+            }
+
+            if (hasShortage) {
+                btnMarkPartUsed.setEnabled(false);
+                btnMarkPartUsed.setText("Waiting for Spare Parts (Insufficient Stock)");
+            } else {
+                btnMarkPartUsed.setEnabled(true);
+                btnMarkPartUsed.setText("Mark Parts As Used");
+            }
+        }
+    }
+
+    private void handleMarkPartsUsed() {
+        if (linkedService == null || appointment == null) return;
+
+        progressBar.setVisibility(View.VISIBLE);
+        btnMarkPartUsed.setEnabled(false);
+
+        // 1. Double check stock validity before executing writes
+        boolean stockOk = true;
+        for (RequiredPart req : linkedService.getRequiredParts()) {
+            int available = 0;
+            for (SparePart sp : branchPartsList) {
+                if (sp.getName() != null && sp.getName().equalsIgnoreCase(req.getPartName())) {
+                    available = sp.getQuantity();
+                    break;
+                }
+            }
+            if (available < req.getQuantity()) {
+                stockOk = false;
+                break;
+            }
+        }
+
+        if (!stockOk) {
+            progressBar.setVisibility(View.GONE);
+            btnMarkPartUsed.setEnabled(true);
+            Toast.makeText(this, "Insufficient spare-part stock.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // 2. Perform safe decrement writes using Firestore WriteBatch
+        WriteBatch batch = mFirestore.batch();
+        for (RequiredPart req : linkedService.getRequiredParts()) {
+            for (SparePart sp : branchPartsList) {
+                if (sp.getName() != null && sp.getName().equalsIgnoreCase(req.getPartName())) {
+                    int newQty = sp.getQuantity() - req.getQuantity();
+                    sp.setQuantity(newQty);
+                    batch.update(mFirestore.collection("spareParts").document(sp.getPartId()), "quantity", newQty);
+                    mDbHelper.insertOrUpdateSparePart(sp);
+                }
+            }
+        }
+
+        // 3. Update appointment status to "Repair Completed"
+        appointment.setStatus("Repair Completed");
+        batch.update(mFirestore.collection("appointments").document(appointmentId), "status", "Repair Completed");
+        mDbHelper.insertOrUpdateAppointment(appointment);
+
+        batch.commit().addOnCompleteListener(task -> {
+            progressBar.setVisibility(View.GONE);
+            if (task.isSuccessful()) {
+                Toast.makeText(this, "Spare parts marked as used and inventory updated!", Toast.LENGTH_SHORT).show();
+                // Update dropdown text matching current status
+                statusAutoComplete.setText("Repair Completed", false);
+                updatePartsUI();
+            } else {
+                btnMarkPartUsed.setEnabled(true);
+                Toast.makeText(this, "Failed to update inventory: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void loadImageFromUrl(String url, ImageView imageView) {
@@ -216,49 +386,126 @@ public class TechnicianJobDetailActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         btnSaveProgress.setEnabled(false);
 
-        // Update status online in Firestore
-        mFirestore.collection("appointments").document(appointmentId)
-                .update("status", newStatus)
-                .addOnCompleteListener(task -> {
-                    progressBar.setVisibility(View.GONE);
-                    btnSaveProgress.setEnabled(true);
+        // Check if updating to a completed status:
+        boolean isCompleting = "Repair Completed".equalsIgnoreCase(newStatus) || "Completed".equalsIgnoreCase(newStatus);
+        boolean partsNeedConsumption = btnMarkPartUsed.getVisibility() == View.VISIBLE && btnMarkPartUsed.isEnabled();
 
-                    if (task.isSuccessful()) {
-                        // Update local SQLite cache
-                        appointment.setStatus(newStatus);
-                        mDbHelper.insertOrUpdateAppointment(appointment);
-
-                        // If completed, sync to SQLite history table for offline cache listing
-                        if ("Repair Completed".equalsIgnoreCase(newStatus)) {
-                            // Find matched service cost
-                            double cost = 3000.0;
-                            String serviceName = "General Repair";
-                            for (Service s : servicesList) {
-                                if (s.getServiceId().equalsIgnoreCase(appointment.getServiceId())) {
-                                    cost = s.getPrice();
-                                    serviceName = s.getName();
-                                    break;
-                                }
-                            }
-                            mDbHelper.insertOrUpdateHistory(
-                                    appointmentId,
-                                    appointmentId,
-                                    appointment.getCustomerId(),
-                                    appointment.getDeviceModel(),
-                                    serviceName,
-                                    appointment.getAssignedBranch(),
-                                    appointment.getDate(),
-                                    cost,
-                                    "Pending", // Payment remains Pending until customer simulation paid
-                                    newStatus
-                            );
-                        }
-
-                        Toast.makeText(TechnicianJobDetailActivity.this, "Job status updated successfully!", Toast.LENGTH_SHORT).show();
-                        finish();
-                    } else {
-                        Toast.makeText(TechnicianJobDetailActivity.this, "Update failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+        if (isCompleting && partsNeedConsumption) {
+            // Check if stock is sufficient
+            boolean stockOk = true;
+            for (RequiredPart req : linkedService.getRequiredParts()) {
+                int available = 0;
+                for (SparePart sp : branchPartsList) {
+                    if (sp.getName() != null && sp.getName().equalsIgnoreCase(req.getPartName())) {
+                        available = sp.getQuantity();
+                        break;
                     }
-                });
+                }
+                if (available < req.getQuantity()) {
+                    stockOk = false;
+                    break;
+                }
+            }
+
+            if (!stockOk) {
+                progressBar.setVisibility(View.GONE);
+                btnSaveProgress.setEnabled(true);
+                Toast.makeText(this, "Cannot complete: Insufficient spare-part stock.", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            // Decrement stock in batch with status update
+            WriteBatch batch = mFirestore.batch();
+            for (RequiredPart req : linkedService.getRequiredParts()) {
+                for (SparePart sp : branchPartsList) {
+                    if (sp.getName() != null && sp.getName().equalsIgnoreCase(req.getPartName())) {
+                        int newQty = sp.getQuantity() - req.getQuantity();
+                        sp.setQuantity(newQty);
+                        batch.update(mFirestore.collection("spareParts").document(sp.getPartId()), "quantity", newQty);
+                        mDbHelper.insertOrUpdateSparePart(sp);
+                    }
+                }
+            }
+
+            appointment.setStatus(newStatus);
+            batch.update(mFirestore.collection("appointments").document(appointmentId), "status", newStatus);
+            mDbHelper.insertOrUpdateAppointment(appointment);
+
+            // Sync to SQLite history
+            double cost = 3000.0;
+            String serviceName = "General Repair";
+            for (Service s : servicesList) {
+                if (s.getServiceId().equalsIgnoreCase(appointment.getServiceId())) {
+                    cost = s.getPrice();
+                    serviceName = s.getName();
+                    break;
+                }
+            }
+            mDbHelper.insertOrUpdateHistory(
+                    appointmentId,
+                    appointmentId,
+                    appointment.getCustomerId(),
+                    appointment.getDeviceModel(),
+                    serviceName,
+                    appointment.getAssignedBranch(),
+                    appointment.getDate(),
+                    cost,
+                    "Pending",
+                    newStatus
+            );
+
+            batch.commit().addOnCompleteListener(task -> {
+                progressBar.setVisibility(View.GONE);
+                btnSaveProgress.setEnabled(true);
+                if (task.isSuccessful()) {
+                    Toast.makeText(TechnicianJobDetailActivity.this, "Job status updated and spare parts deducted successfully!", Toast.LENGTH_SHORT).show();
+                    finish();
+                } else {
+                    Toast.makeText(TechnicianJobDetailActivity.this, "Update failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
+        } else {
+            // Regular status update
+            mFirestore.collection("appointments").document(appointmentId)
+                    .update("status", newStatus)
+                    .addOnCompleteListener(task -> {
+                        progressBar.setVisibility(View.GONE);
+                        btnSaveProgress.setEnabled(true);
+
+                        if (task.isSuccessful()) {
+                            appointment.setStatus(newStatus);
+                            mDbHelper.insertOrUpdateAppointment(appointment);
+
+                            if ("Repair Completed".equalsIgnoreCase(newStatus)) {
+                                double cost = 3000.0;
+                                String serviceName = "General Repair";
+                                for (Service s : servicesList) {
+                                    if (s.getServiceId().equalsIgnoreCase(appointment.getServiceId())) {
+                                        cost = s.getPrice();
+                                        serviceName = s.getName();
+                                        break;
+                                    }
+                                }
+                                mDbHelper.insertOrUpdateHistory(
+                                        appointmentId,
+                                        appointmentId,
+                                        appointment.getCustomerId(),
+                                        appointment.getDeviceModel(),
+                                        serviceName,
+                                        appointment.getAssignedBranch(),
+                                        appointment.getDate(),
+                                        cost,
+                                        "Pending",
+                                        newStatus
+                                );
+                            }
+
+                            Toast.makeText(TechnicianJobDetailActivity.this, "Job status updated successfully!", Toast.LENGTH_SHORT).show();
+                            finish();
+                        } else {
+                            Toast.makeText(TechnicianJobDetailActivity.this, "Update failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
+        }
     }
 }

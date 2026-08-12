@@ -97,6 +97,16 @@
             android:name=".admin.AdminCompletedOrdersActivity" 
             android:exported="false" />
 
+        <activity 
+            android:name=".admin.AdminSparePartsActivity" 
+            android:exported="false" />
+        <activity 
+            android:name=".admin.AdminAddEditSparePartActivity" 
+            android:exported="false" />
+        <activity 
+            android:name=".admin.AdminAddEditServiceActivity" 
+            android:exported="false" />
+
     </application>
 
 

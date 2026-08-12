@@ -24,6 +24,7 @@ import com.techfix.app.R;
 import com.techfix.app.adapters.ServiceAdapter;
 import com.techfix.app.authentication.LoginActivity;
 import com.techfix.app.database.DatabaseHelper;
+import com.techfix.app.models.RequiredPart;
 import com.techfix.app.models.Service;
 import com.techfix.app.models.User;
 
@@ -236,6 +237,49 @@ public class CustomerDashboardActivity extends AppCompatActivity {
                             for (DocumentSnapshot doc : task.getResult()) {
                                 Service service = doc.toObject(Service.class);
                                 if (service != null) {
+                                    // Self-correction: check if requiredParts is empty/null, map it!
+                                    if (service.getRequiredParts() == null || service.getRequiredParts().isEmpty()) {
+                                        boolean updated = false;
+                                        String id = service.getServiceId();
+                                        if ("s1".equals(id)) {
+                                            service.getRequiredParts().add(new RequiredPart("Laptop Screen", 1));
+                                            updated = true;
+                                        } else if ("s3".equals(id)) {
+                                            service.getRequiredParts().add(new RequiredPart("SSD", 1));
+                                            updated = true;
+                                        } else if ("s7".equals(id)) {
+                                            service.getRequiredParts().add(new RequiredPart("Laptop Keyboard", 1));
+                                            updated = true;
+                                        } else if ("s9".equals(id)) {
+                                            service.getRequiredParts().add(new RequiredPart("Motherboard IC Chip", 1));
+                                            updated = true;
+                                        } else if ("s10".equals(id)) {
+                                            service.getRequiredParts().add(new RequiredPart("Laptop Battery", 1));
+                                            updated = true;
+                                        } else if ("s4".equals(id)) {
+                                            service.getRequiredParts().add(new RequiredPart("Mobile Screen", 1));
+                                            updated = true;
+                                        } else if ("s5".equals(id)) {
+                                            service.getRequiredParts().add(new RequiredPart("Mobile Battery", 1));
+                                            updated = true;
+                                        } else if ("s6".equals(id)) {
+                                            service.getRequiredParts().add(new RequiredPart("USB-C Charging Port", 1));
+                                            updated = true;
+                                        } else if ("s11".equals(id)) {
+                                            service.getRequiredParts().add(new RequiredPart("Camera Module", 1));
+                                            updated = true;
+                                        } else if ("s12".equals(id)) {
+                                            service.getRequiredParts().add(new RequiredPart("Speaker Module", 1));
+                                            updated = true;
+                                        } else if ("s14".equals(id)) {
+                                            service.getRequiredParts().add(new RequiredPart("Wi-Fi Antenna Module", 1));
+                                            updated = true;
+                                        }
+                                        
+                                        if (updated) {
+                                            mFirestore.collection("services").document(id).set(service);
+                                        }
+                                    }
                                     services.add(service);
                                     mDbHelper.insertOrUpdateService(service);
                                 }
@@ -251,23 +295,61 @@ public class CustomerDashboardActivity extends AppCompatActivity {
 
     private void seedDefaultServices() {
         List<Service> defaultServices = new ArrayList<>();
+        
         // Computer services
-        defaultServices.add(new Service("s1", "Laptop Screen Repair", "Computer", "Replacement of cracked, damaged or flickering laptop screen panel.", 15000.0, "1-2 days", ""));
-        defaultServices.add(new Service("s2", "Operating System Installation", "Computer", "Clean installation of Windows or macOS with drivers and software setup.", 2500.0, "3 hours", ""));
-        defaultServices.add(new Service("s3", "RAM/SSD Upgrade", "Computer", "Speed up your system by upgrading local memory and storage drives.", 8500.0, "1 hour", ""));
-        defaultServices.add(new Service("s7", "Keyboard Replacement", "Computer", "Replace broken, sticky, or unresponsive keys with a fresh replacement keyboard layout.", 4500.0, "1-2 hours", ""));
-        defaultServices.add(new Service("s8", "Thermal Paste & Cleaning", "Computer", "Prevent overheating and noise by cleaning fans and applying thermal paste.", 2000.0, "1 hour", ""));
-        defaultServices.add(new Service("s9", "Motherboard Chip Repair", "Computer", "Advanced diagnostics and micro-soldering for power faults and water damage.", 18000.0, "3-5 days", ""));
-        defaultServices.add(new Service("s10", "Data Recovery Service", "Computer", "Retrieve lost or deleted files from damaged hard drives or system failures.", 7500.0, "2 days", ""));
+        Service s1 = new Service("s1", "Laptop Screen Repair", "Computer", "Replacement of cracked, damaged or flickering laptop screen panel.", 15000.0, "1-2 days", "");
+        s1.getRequiredParts().add(new RequiredPart("Laptop Screen", 1));
+        defaultServices.add(s1);
+
+        Service s2 = new Service("s2", "Operating System Installation", "Computer", "Clean installation of Windows or macOS with drivers and software setup.", 2500.0, "3 hours", "");
+        defaultServices.add(s2); // OS Install - No spare parts needed!
+
+        Service s3 = new Service("s3", "RAM/SSD Upgrade", "Computer", "Speed up your system by upgrading local memory and storage drives.", 8500.0, "1 hour", "");
+        s3.getRequiredParts().add(new RequiredPart("SSD", 1));
+        defaultServices.add(s3);
+
+        Service s7 = new Service("s7", "Keyboard Replacement", "Computer", "Replace broken, sticky, or unresponsive keys with a fresh replacement keyboard layout.", 4500.0, "1-2 hours", "");
+        s7.getRequiredParts().add(new RequiredPart("Laptop Keyboard", 1));
+        defaultServices.add(s7);
+
+        Service s8 = new Service("s8", "Thermal Paste & Cleaning", "Computer", "Prevent overheating and noise by cleaning fans and applying thermal paste.", 2000.0, "1 hour", "");
+        defaultServices.add(s8); // Cleaning - No spare parts needed!
+
+        Service s9 = new Service("s9", "Motherboard Chip Repair", "Computer", "Advanced diagnostics and micro-soldering for power faults and water damage.", 18000.0, "3-5 days", "");
+        s9.getRequiredParts().add(new RequiredPart("Motherboard IC Chip", 1));
+        defaultServices.add(s9);
+
+        Service s10 = new Service("s10", "Laptop Battery Replacement", "Computer", "Restore your laptop's original battery health with high-quality battery swap.", 14500.0, "1-2 days", "");
+        s10.getRequiredParts().add(new RequiredPart("Laptop Battery", 1));
+        defaultServices.add(s10);
         
         // Mobile services
-        defaultServices.add(new Service("s4", "Mobile Screen Replacement", "Mobile", "Premium display replacements for cracked, dead, or unresponsive touch screens.", 9500.0, "2 hours", ""));
-        defaultServices.add(new Service("s5", "Battery Replacement", "Mobile", "Restore your device's original battery health with high-quality battery swap.", 4500.0, "1 hour", ""));
-        defaultServices.add(new Service("s6", "Charging Port Repair", "Mobile", "Repair or replace faulty micro-USB or USB-C charging ports.", 3500.0, "1 hour", ""));
-        defaultServices.add(new Service("s11", "Camera Module Repair", "Mobile", "Replace blurry, cracked, or shaking front/rear camera modules.", 5500.0, "1 hour", ""));
-        defaultServices.add(new Service("s12", "Speaker & Mic Replacement", "Mobile", "Fix low call volume, crackling noise, or silent speakers.", 2500.0, "1 hour", ""));
-        defaultServices.add(new Service("s13", "Water Damage Recovery", "Mobile", "Ultrasonic cleaning and motherboard treatment to recover liquid damage.", 4000.0, "24 hours", ""));
-        defaultServices.add(new Service("s14", "Wi-Fi & Network Repair", "Mobile", "Fix antenna problems, weak cellular reception, or greyed Wi-Fi switch.", 6000.0, "1-2 days", ""));
+        Service s4 = new Service("s4", "Mobile Screen Replacement", "Mobile", "Premium display replacements for cracked, dead, or unresponsive touch screens.", 9500.0, "2 hours", "");
+        s4.getRequiredParts().add(new RequiredPart("Mobile Screen", 1));
+        defaultServices.add(s4);
+
+        Service s5 = new Service("s5", "Battery Replacement", "Mobile", "Restore your device's original battery health with high-quality battery swap.", 4500.0, "1 hour", "");
+        s5.getRequiredParts().add(new RequiredPart("Mobile Battery", 1));
+        defaultServices.add(s5);
+
+        Service s6 = new Service("s6", "Charging Port Repair", "Mobile", "Repair or replace faulty micro-USB or USB-C charging ports.", 3500.0, "1 hour", "");
+        s6.getRequiredParts().add(new RequiredPart("USB-C Charging Port", 1));
+        defaultServices.add(s6);
+
+        Service s11 = new Service("s11", "Camera Module Repair", "Mobile", "Replace blurry, cracked, or shaking front/rear camera modules.", 5500.0, "1 hour", "");
+        s11.getRequiredParts().add(new RequiredPart("Camera Module", 1));
+        defaultServices.add(s11);
+
+        Service s12 = new Service("s12", "Speaker & Mic Replacement", "Mobile", "Fix low call volume, crackling noise, or silent speakers.", 2500.0, "1 hour", "");
+        s12.getRequiredParts().add(new RequiredPart("Speaker Module", 1));
+        defaultServices.add(s12);
+
+        Service s13 = new Service("s13", "Water Damage Recovery", "Mobile", "Ultrasonic cleaning and motherboard treatment to recover liquid damage.", 4000.0, "24 hours", "");
+        defaultServices.add(s13); // Water damage cleaning - No parts needed!
+
+        Service s14 = new Service("s14", "Wi-Fi & Network Repair", "Mobile", "Fix antenna problems, weak cellular reception, or greyed Wi-Fi switch.", 6000.0, "1-2 days", "");
+        s14.getRequiredParts().add(new RequiredPart("Wi-Fi Antenna Module", 1));
+        defaultServices.add(s14);
 
         for (Service s : defaultServices) {
             // Always insert into SQLite cache and update local state immediately

@@ -69,7 +69,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         cardManageBranches.setOnClickListener(v -> launchCrud("branches"));
         cardManageServices.setOnClickListener(v -> launchCrud("services"));
         cardManageTechnicians.setOnClickListener(v -> launchCrud("technicians"));
-        cardManageParts.setOnClickListener(v -> launchCrud("spare_parts"));
+        cardManageParts.setOnClickListener(v -> startActivity(new Intent(AdminDashboardActivity.this, AdminSparePartsActivity.class)));
         cardCompletedOrders.setOnClickListener(v -> startActivity(new Intent(AdminDashboardActivity.this, AdminCompletedOrdersActivity.class)));
 
         // Admin Bottom Navigation Click Listeners

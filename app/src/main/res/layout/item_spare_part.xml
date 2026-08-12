@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="6dp"
+    app:cardCornerRadius="8dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/dividerColor"
+    app:cardElevation="0dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Part Title -->
+        <TextView
+            android:id="@+id/partItemName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dell Inspiron Battery"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/textPrimary"
+            android:layout_alignParentStart="true"
+            android:layout_toStartOf="@id/partItemEditBtn" />
+
+        <!-- Category -->
+        <TextView
+            android:id="@+id/partItemCategory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Category: Laptop Accessories"
+            android:textSize="12sp"
+            android:textColor="@color/textSecondary"
+            android:layout_below="@id/partItemName"
+            android:layout_marginTop="2dp" />
+
+        <!-- Branch info -->
+        <TextView
+            android:id="@+id/partItemBranch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Branch: Colombo"
+            android:textSize="13sp"
+            android:textColor="@color/primaryColor"
+            android:layout_below="@id/partItemCategory"
+            android:layout_marginTop="6dp" />
+
+        <!-- Price -->
+        <TextView
+            android:id="@+id/partItemPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rs. 12,000.00"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/primaryLightColor"
+            android:layout_below="@id/partItemBranch"
+            android:layout_marginTop="4dp" />
+
+        <!-- Status Tag Container (Card wrapper) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/partItemStatusCard"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@id/partItemName"
+            app:cardCornerRadius="4dp"
+            app:strokeWidth="0dp"
+            app:cardElevation="0dp">
+            
+            <TextView
+                android:id="@+id/partItemStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:text="Available"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Stock level info -->
+        <TextView
+            android:id="@+id/partItemStock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@id/partItemStatusCard"
+            android:layout_marginTop="8dp"
+            android:text="Qty: 8"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/textPrimary" />
+
+        <!-- Edit Icon Button -->
+        <ImageView
+            android:id="@+id/partItemEditBtn"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:src="@android:drawable/ic_menu_edit"
+            android:contentDescription="Edit Part"
+            app:tint="@color/textSecondary" />
+
+    </RelativeLayout>
+
+</com.google.android.material.card.MaterialCardView>

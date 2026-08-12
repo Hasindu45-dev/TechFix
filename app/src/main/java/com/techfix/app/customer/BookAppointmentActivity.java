@@ -364,6 +364,20 @@ public class BookAppointmentActivity extends AppCompatActivity {
                     @Override
                     public void onAssignmentComplete(com.techfix.app.models.Branch assignedBranch, double distanceKm, String assignedTechnicianName, String reason) {
                         
+                        if (assignedBranch == null) {
+                            progressBar.setVisibility(View.GONE);
+                            btnBookAppointment.setEnabled(true);
+                            new AlertDialog.Builder(BookAppointmentActivity.this)
+                                    .setTitle("Booking Unavailable")
+                                    .setMessage("No suitable branch is currently available with the required spare parts or technicians. Your booking cannot be placed at this time.")
+                                    .setPositiveButton("OK", null)
+                                    .show();
+                            return;
+                        }
+
+                        String branchName = assignedBranch.getName();
+                        String status = "Request Submitted";
+
                         Appointment appt = new Appointment(
                                 appointmentId,
                                 customerId,
@@ -371,9 +385,9 @@ public class BookAppointmentActivity extends AppCompatActivity {
                                 model,
                                 problemDesc,
                                 imageUrl,
-                                assignedBranch.getName(),
+                                branchName,
                                 assignedTechnicianName,
-                                "Request Submitted",
+                                status,
                                 date
                         );
 
@@ -389,7 +403,7 @@ public class BookAppointmentActivity extends AppCompatActivity {
                                         mDbHelper.insertOrUpdateAppointment(appt);
                                         
                                         // Display Coursework Specific Success Dialog
-                                        showSuccessDialog(assignedBranch.getName(), distanceKm, assignedTechnicianName, reason);
+                                        showSuccessDialog(branchName, distanceKm, assignedTechnicianName, reason);
                                     } else {
                                         Toast.makeText(BookAppointmentActivity.this, "Booking failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                                     }
@@ -406,19 +420,24 @@ public class BookAppointmentActivity extends AppCompatActivity {
     }
 
     private void showSuccessDialog(String branchName, double distanceKm, String techName, String reason) {
-        new AlertDialog.Builder(this)
-                .setTitle("Appointment Placed Successfully!")
-                .setMessage("Your request has been automatically assigned to our closest available branch.\n\n"
-                        + "Assigned Branch: " + branchName + "\n"
-                        + "Estimated Distance: " + String.format("%.1f km", distanceKm) + "\n"
-                        + "Assigned Technician: " + techName + "\n\n"
-                        + "Assignment Rationale:\n" + reason)
-                .setPositiveButton("OK", (dialog, which) -> {
-                    dialog.dismiss();
-                    finish();
-                })
-                .setCancelable(false)
-                .show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        if ("Unassigned".equals(branchName)) {
+            builder.setTitle("Appointment Submitted")
+                    .setMessage("No suitable branch is currently available. Your repair request has been submitted and is waiting for required resources.");
+        } else {
+            builder.setTitle("Appointment Placed Successfully!")
+                    .setMessage("Your request has been automatically assigned to our closest available branch.\n\n"
+                            + "Assigned Branch: " + branchName + "\n"
+                            + "Estimated Distance: " + String.format("%.1f km", distanceKm) + "\n"
+                            + "Assigned Technician: " + techName + "\n\n"
+                            + "Assignment Rationale:\n" + reason);
+        }
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            dialog.dismiss();
+            finish();
+        })
+        .setCancelable(false)
+        .show();
     }
 
     @Override

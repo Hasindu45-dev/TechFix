@@ -166,6 +166,12 @@ public class AdminManageDataActivity extends AppCompatActivity {
     }
 
     private void showAddDialog() {
+        if ("services".equalsIgnoreCase(manageType)) {
+            android.content.Intent intent = new android.content.Intent(this, AdminAddEditServiceActivity.class);
+            startActivity(intent);
+            return;
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Add " + capitalize(manageType.substring(0, manageType.length() - (manageType.endsWith("s") ? 1 : 0))));
 
@@ -255,6 +261,13 @@ public class AdminManageDataActivity extends AppCompatActivity {
     }
 
     private void showEditDialog(GenericCrudAdapter.CrudItem item) {
+        if ("services".equalsIgnoreCase(manageType) && item.rawObject instanceof Service) {
+            android.content.Intent intent = new android.content.Intent(this, AdminAddEditServiceActivity.class);
+            intent.putExtra("SERVICE_ID", ((Service) item.rawObject).getServiceId());
+            startActivity(intent);
+            return;
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Edit Record");
 

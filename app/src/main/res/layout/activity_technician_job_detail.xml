@@ -173,6 +173,35 @@
                     android:src="@android:drawable/ic_menu_report_image" />
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Required Spare Parts checklist -->
+            <TextView
+                android:id="@+id/lblTechRequiredParts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="REQUIRED SPARE PARTS"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/textSecondary"
+                android:layout_marginTop="20dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/techRequiredPartsRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="false" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnMarkPartUsed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Mark Parts As Used"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:cornerRadius="8dp"
+                android:backgroundTint="@color/primaryColor" />
+
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"

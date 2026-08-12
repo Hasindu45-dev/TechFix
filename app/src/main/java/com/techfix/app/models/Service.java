@@ -78,4 +78,14 @@ public class Service {
     public void setImageURL(String imageURL) {
         this.imageURL = imageURL;
     }
+
+    private java.util.List<RequiredPart> requiredParts = new java.util.ArrayList<>();
+
+    public java.util.List<RequiredPart> getRequiredParts() {
+        return requiredParts;
+    }
+
+    public void setRequiredParts(java.util.List<RequiredPart> requiredParts) {
+        this.requiredParts = requiredParts;
+    }
 }
