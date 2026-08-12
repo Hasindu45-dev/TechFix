@@ -39,6 +39,7 @@ public class TechnicianDashboardActivity extends AppCompatActivity {
 
     private String branchNameFilter = "TechFix Colombo"; // Fallback default
     private String branchId = "colombo";
+    private String technicianName = "";
 
     private List<Appointment> jobsList = new ArrayList<>();
     private List<Service> servicesList = new ArrayList<>();
@@ -96,12 +97,16 @@ public class TechnicianDashboardActivity extends AppCompatActivity {
                     if (task.isSuccessful() && task.getResult() != null) {
                         DocumentSnapshot doc = task.getResult();
                         if (doc.exists()) {
-                            String name = doc.getString("name");
-                            technicianNameText.setText("Welcome, " + name + "!");
+                            technicianName = doc.getString("name");
+                            technicianNameText.setText("Welcome, " + technicianName + "!");
                         }
                     }
+                    // Load branch info next
+                    loadTechnicianBranch(userId);
                 });
+    }
 
+    private void loadTechnicianBranch(String userId) {
         // Determine technician branch
         mFirestore.collection("technicians").document(userId)
                 .get()
@@ -117,14 +122,18 @@ public class TechnicianDashboardActivity extends AppCompatActivity {
                             }
                         }
                     }
-                    // Fetch jobs assigned to this branch
+                    // Fetch jobs assigned specifically to this technician name
                     fetchJobs();
                 });
     }
 
     private void fetchJobs() {
+        if (technicianName == null || technicianName.isEmpty()) {
+            technicianName = "Unassigned";
+        }
+
         mFirestore.collection("appointments")
-                .whereEqualTo("assignedBranch", branchNameFilter)
+                .whereEqualTo("assignedTechnician", technicianName)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
@@ -146,15 +155,15 @@ public class TechnicianDashboardActivity extends AppCompatActivity {
     }
 
     private void loadJobsOffline() {
-        // Query appointments locally for this branch
+        // Query appointments locally for this technician
         List<Appointment> allAppts = mDbHelper.getAppointmentsForCustomer(""); // empty gets all locally
-        List<Appointment> branchAppts = new ArrayList<>();
+        List<Appointment> techAppts = new ArrayList<>();
         for (Appointment a : allAppts) {
-            if (a.getAssignedBranch().equalsIgnoreCase(branchNameFilter)) {
-                branchAppts.add(a);
+            if (a.getAssignedTechnician() != null && a.getAssignedTechnician().equalsIgnoreCase(technicianName)) {
+                techAppts.add(a);
             }
         }
-        jobsList = branchAppts;
+        jobsList = techAppts;
         adapter.setJobs(jobsList, servicesList);
         toggleEmptyState(jobsList.isEmpty());
     }

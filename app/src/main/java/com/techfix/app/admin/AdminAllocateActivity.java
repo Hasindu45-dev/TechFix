@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -13,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.techfix.app.R;
@@ -30,6 +32,8 @@ public class AdminAllocateActivity extends AppCompatActivity {
     private AutoCompleteTextView branchAutoComplete, techAutoComplete;
     private MaterialButton btnConfirmAllocation;
     private ProgressBar progressBar;
+    private ImageView allocDeviceImage;
+    private MaterialCardView allocImageCard;
 
     private FirebaseFirestore mFirestore;
     private DatabaseHelper mDbHelper;
@@ -67,6 +71,8 @@ public class AdminAllocateActivity extends AppCompatActivity {
         techAutoComplete = findViewById(R.id.techAutoComplete);
         btnConfirmAllocation = findViewById(R.id.btnConfirmAllocation);
         progressBar = findViewById(R.id.allocProgressBar);
+        allocDeviceImage = findViewById(R.id.allocDeviceImage);
+        allocImageCard = findViewById(R.id.allocImageCard);
 
         // Setup Branch dropdown
         ArrayAdapter<String> branchAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, BRANCHES);
@@ -125,6 +131,30 @@ public class AdminAllocateActivity extends AppCompatActivity {
 
         branchAutoComplete.setText(appointment.getAssignedBranch(), false);
         techAutoComplete.setText(appointment.getAssignedTechnician(), false);
+
+        if (appointment.getImageURL() != null && !appointment.getImageURL().isEmpty()) {
+            allocImageCard.setVisibility(View.VISIBLE);
+            loadImageFromUrl(appointment.getImageURL(), allocDeviceImage);
+        } else {
+            allocImageCard.setVisibility(View.GONE);
+        }
+    }
+
+    private void loadImageFromUrl(String url, ImageView imageView) {
+        java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+        android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+
+        executor.execute(() -> {
+            try {
+                java.io.InputStream in = new java.net.URL(url).openStream();
+                android.graphics.Bitmap image = android.graphics.BitmapFactory.decodeStream(in);
+                handler.post(() -> {
+                    imageView.setImageBitmap(image);
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     private void loadTechniciansList() {

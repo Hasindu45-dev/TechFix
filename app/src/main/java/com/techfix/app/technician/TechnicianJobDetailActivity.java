@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.techfix.app.R;
@@ -26,8 +27,9 @@ import java.util.List;
 
 public class TechnicianJobDetailActivity extends AppCompatActivity {
 
-    private TextView detailJobId, detailDeviceModel, detailServiceName, detailCustName, detailCustPhone, detailCustAddress, detailProblemDesc;
+    private TextView detailJobId, detailDeviceModel, detailServiceName, detailCustName, detailCustPhone, detailCustAddress, detailProblemDesc, lblAttachedPhoto;
     private ImageView detailDeviceImage;
+    private MaterialCardView detailImageCard;
     private AutoCompleteTextView statusAutoComplete;
     private MaterialButton btnSaveProgress;
     private ProgressBar progressBar;
@@ -75,6 +77,8 @@ public class TechnicianJobDetailActivity extends AppCompatActivity {
         detailCustAddress = findViewById(R.id.detailCustAddress);
         detailProblemDesc = findViewById(R.id.detailProblemDesc);
         detailDeviceImage = findViewById(R.id.detailDeviceImage);
+        lblAttachedPhoto = findViewById(R.id.lblAttachedPhoto);
+        detailImageCard = findViewById(R.id.detailImageCard);
         statusAutoComplete = findViewById(R.id.statusAutoComplete);
         btnSaveProgress = findViewById(R.id.btnSaveProgress);
         progressBar = findViewById(R.id.detailProgressBar);
@@ -147,8 +151,34 @@ public class TechnicianJobDetailActivity extends AppCompatActivity {
             statusAutoComplete.setText(PROGRESS_STATUSES[0], false);
         }
 
+        if (appointment.getImageURL() != null && !appointment.getImageURL().isEmpty()) {
+            lblAttachedPhoto.setVisibility(View.VISIBLE);
+            detailImageCard.setVisibility(View.VISIBLE);
+            loadImageFromUrl(appointment.getImageURL(), detailDeviceImage);
+        } else {
+            lblAttachedPhoto.setVisibility(View.GONE);
+            detailImageCard.setVisibility(View.GONE);
+        }
+
         // Load customer contact details
         loadCustomerContact(appointment.getCustomerId());
+    }
+
+    private void loadImageFromUrl(String url, ImageView imageView) {
+        java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+        android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+
+        executor.execute(() -> {
+            try {
+                java.io.InputStream in = new java.net.URL(url).openStream();
+                android.graphics.Bitmap image = android.graphics.BitmapFactory.decodeStream(in);
+                handler.post(() -> {
+                    imageView.setImageBitmap(image);
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     private void loadCustomerContact(String customerId) {

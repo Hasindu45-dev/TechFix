@@ -315,13 +315,33 @@ public class BookAppointmentActivity extends AppCompatActivity {
 
         final String appointmentId = UUID.randomUUID().toString();
         final String finalServiceId = serviceId;
+        final String finalCategory = category;
+        final String finalServiceName = serviceName;
 
-        // Bypass Firebase Storage upload for now, pass a mock URL if a photo was taken
         if (capturedBitmap != null) {
-            String mockUrl = "mock://device_images/" + appointmentId + ".jpg";
-            runAssignmentAndSave(appointmentId, finalServiceId, model, date, problemDesc, mockUrl, category, serviceName);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            capturedBitmap.compress(Bitmap.CompressFormat.JPEG, 90, baos);
+            byte[] data = baos.toByteArray();
+
+            StorageReference imageRef = mStorage.getReference().child("device_images/" + appointmentId + ".jpg");
+            UploadTask uploadTask = imageRef.putBytes(data);
+
+            uploadTask.addOnFailureListener(exception -> {
+                progressBar.setVisibility(View.GONE);
+                btnBookAppointment.setEnabled(true);
+                Toast.makeText(BookAppointmentActivity.this, "Image upload failed: " + exception.getMessage(), Toast.LENGTH_LONG).show();
+            }).addOnSuccessListener(taskSnapshot -> {
+                imageRef.getDownloadUrl().addOnCompleteListener(urlTask -> {
+                    if (urlTask.isSuccessful() && urlTask.getResult() != null) {
+                        String downloadUrl = urlTask.getResult().toString();
+                        runAssignmentAndSave(appointmentId, finalServiceId, model, date, problemDesc, downloadUrl, finalCategory, finalServiceName);
+                    } else {
+                        runAssignmentAndSave(appointmentId, finalServiceId, model, date, problemDesc, "", finalCategory, finalServiceName);
+                    }
+                });
+            });
         } else {
-            runAssignmentAndSave(appointmentId, finalServiceId, model, date, problemDesc, "", category, serviceName);
+            runAssignmentAndSave(appointmentId, finalServiceId, model, date, problemDesc, "", finalCategory, finalServiceName);
         }
     }
 
