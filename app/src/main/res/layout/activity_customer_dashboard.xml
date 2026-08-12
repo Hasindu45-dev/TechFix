@@ -54,7 +54,8 @@
                     android:layout_centerVertical="true"
                     android:src="@android:drawable/ic_lock_power_off"
                     android:contentDescription="Log Out"
-                    app:tint="@color/white" />
+                    app:tint="@color/white"
+                    android:visibility="gone" />
             </RelativeLayout>
 
             <!-- Quick Action Cards Grid (2x2) -->
@@ -381,25 +382,25 @@
                     android:textColor="@color/secondaryColor" />
             </LinearLayout>
 
-            <!-- Branches tab -->
+            <!-- Track tab -->
             <LinearLayout
-                android:id="@+id/navBranches"
+                android:id="@+id/navTrack"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:orientation="vertical">
                 <ImageView
-                    android:id="@+id/imgNavBranches"
+                    android:id="@+id/imgNavTrack"
                     android:layout_width="22dp"
                     android:layout_height="22dp"
-                    android:src="@android:drawable/ic_dialog_map"
+                    android:src="@android:drawable/ic_popup_sync"
                     app:tint="@color/primaryLightColor" />
                 <TextView
-                    android:id="@+id/txtNavBranches"
+                    android:id="@+id/txtNavTrack"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Branches"
+                    android:text="Track"
                     android:textSize="9sp"
                     android:textColor="@color/primaryLightColor" />
             </LinearLayout>
@@ -428,29 +429,6 @@
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
-            <!-- Track tab -->
-            <LinearLayout
-                android:id="@+id/navTrack"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView
-                    android:id="@+id/imgNavTrack"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@android:drawable/ic_popup_sync"
-                    app:tint="@color/primaryLightColor" />
-                <TextView
-                    android:id="@+id/txtNavTrack"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Track"
-                    android:textSize="9sp"
-                    android:textColor="@color/primaryLightColor" />
-            </LinearLayout>
-
             <!-- History tab -->
             <LinearLayout
                 android:id="@+id/navHistory"
@@ -470,6 +448,29 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="History"
+                    android:textSize="9sp"
+                    android:textColor="@color/primaryLightColor" />
+            </LinearLayout>
+
+            <!-- Profile tab -->
+            <LinearLayout
+                android:id="@+id/navProfile"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <ImageView
+                    android:id="@+id/imgNavProfile"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@android:drawable/ic_menu_info_details"
+                    app:tint="@color/primaryLightColor" />
+                <TextView
+                    android:id="@+id/txtNavProfile"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Profile"
                     android:textSize="9sp"
                     android:textColor="@color/primaryLightColor" />
             </LinearLayout>

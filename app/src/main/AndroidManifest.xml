@@ -51,6 +51,9 @@
             android:name=".customer.CustomerDashboardActivity" 
             android:exported="false" />
         <activity 
+            android:name=".customer.ProfileActivity" 
+            android:exported="false" />
+        <activity 
             android:name=".technician.TechnicianDashboardActivity" 
             android:exported="false" />
         <activity 

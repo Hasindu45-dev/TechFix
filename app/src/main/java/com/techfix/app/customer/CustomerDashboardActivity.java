@@ -98,12 +98,6 @@ public class CustomerDashboardActivity extends AppCompatActivity {
             applyFilters();
         });
 
-        logoutIcon.setOnClickListener(v -> {
-            mAuth.signOut();
-            Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
-            redirectToLogin();
-        });
-
         // Search text watcher
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -158,17 +152,17 @@ public class CustomerDashboardActivity extends AppCompatActivity {
             findViewById(R.id.scrollViewContent).scrollTo(0, 0);
             Toast.makeText(this, "Home Dashboard", Toast.LENGTH_SHORT).show();
         });
-        findViewById(R.id.navBranches).setOnClickListener(v -> {
-            Intent intent = new Intent(CustomerDashboardActivity.this, com.techfix.app.maps.BranchLocatorActivity.class);
-            startActivity(intent);
-        });
-        findViewById(R.id.navBook).setOnClickListener(v -> navigateToBookingFlow(null));
         findViewById(R.id.navTrack).setOnClickListener(v -> {
             Intent intent = new Intent(CustomerDashboardActivity.this, com.techfix.app.customer.TrackRepairActivity.class);
             startActivity(intent);
         });
+        findViewById(R.id.navBook).setOnClickListener(v -> navigateToBookingFlow(null));
         findViewById(R.id.navHistory).setOnClickListener(v -> {
             Intent intent = new Intent(CustomerDashboardActivity.this, com.techfix.app.customer.RepairHistoryActivity.class);
+            startActivity(intent);
+        });
+        findViewById(R.id.navProfile).setOnClickListener(v -> {
+            Intent intent = new Intent(CustomerDashboardActivity.this, com.techfix.app.customer.ProfileActivity.class);
             startActivity(intent);
         });
     }

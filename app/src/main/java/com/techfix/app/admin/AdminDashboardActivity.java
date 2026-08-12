@@ -72,10 +72,15 @@ public class AdminDashboardActivity extends AppCompatActivity {
         cardManageParts.setOnClickListener(v -> launchCrud("spare_parts"));
         cardCompletedOrders.setOnClickListener(v -> startActivity(new Intent(AdminDashboardActivity.this, AdminCompletedOrdersActivity.class)));
 
-        logoutIcon.setOnClickListener(v -> {
-            mAuth.signOut();
-            Toast.makeText(this, "Admin logged out successfully", Toast.LENGTH_SHORT).show();
-            redirectToLogin();
+        // Admin Bottom Navigation Click Listeners
+        findViewById(R.id.navAdminHome).setOnClickListener(v -> {
+            Toast.makeText(this, "Already on Admin Dashboard", Toast.LENGTH_SHORT).show();
+        });
+        findViewById(R.id.navAdminTechs).setOnClickListener(v -> launchCrud("technicians"));
+        findViewById(R.id.navAdminServices).setOnClickListener(v -> launchCrud("services"));
+        findViewById(R.id.navAdminProfile).setOnClickListener(v -> {
+            Intent intent = new Intent(AdminDashboardActivity.this, com.techfix.app.customer.ProfileActivity.class);
+            startActivity(intent);
         });
 
         // Click on job card opens the manual technician allocation view
