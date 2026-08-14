@@ -92,6 +92,7 @@ public class AdminSparePartsActivity extends AppCompatActivity {
 
         setupFilters();
         setupSearch();
+        setupBottomNavigation();
     }
 
     @Override
@@ -206,5 +207,34 @@ public class AdminSparePartsActivity extends AppCompatActivity {
             noPartsText.setVisibility(View.GONE);
             partsRecyclerView.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void setupBottomNavigation() {
+        findViewById(R.id.navAdminHome).setOnClickListener(v -> {
+            Intent intent = new Intent(AdminSparePartsActivity.this, AdminDashboardActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
+        });
+
+        findViewById(R.id.navAdminTechs).setOnClickListener(v -> launchAdminCrud("technicians"));
+        findViewById(R.id.navAdminServices).setOnClickListener(v -> launchAdminCrud("services"));
+        
+        findViewById(R.id.navAdminInventory).setOnClickListener(v -> {
+            Toast.makeText(AdminSparePartsActivity.this, "Already on Inventory screen", Toast.LENGTH_SHORT).show();
+        });
+
+        findViewById(R.id.navAdminProfile).setOnClickListener(v -> {
+            Intent intent = new Intent(AdminSparePartsActivity.this, com.techfix.app.customer.ProfileActivity.class);
+            startActivity(intent);
+            finish();
+        });
+    }
+
+    private void launchAdminCrud(String type) {
+        Intent intent = new Intent(AdminSparePartsActivity.this, AdminManageDataActivity.class);
+        intent.putExtra("MANAGE_TYPE", type);
+        startActivity(intent);
+        finish();
     }
 }

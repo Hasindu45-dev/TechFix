@@ -240,6 +240,12 @@ public class ProfileActivity extends AppCompatActivity {
 
         findViewById(R.id.navAdminTechs).setOnClickListener(v -> launchAdminCrud("technicians"));
         findViewById(R.id.navAdminServices).setOnClickListener(v -> launchAdminCrud("services"));
+        
+        findViewById(R.id.navAdminInventory).setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, com.techfix.app.admin.AdminSparePartsActivity.class);
+            startActivity(intent);
+            finish();
+        });
 
         findViewById(R.id.navAdminProfile).setOnClickListener(v -> {
             // Already on Profile

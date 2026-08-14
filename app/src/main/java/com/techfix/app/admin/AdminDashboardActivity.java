@@ -1,6 +1,7 @@
 package com.techfix.app.admin;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -11,6 +12,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -27,10 +32,13 @@ import java.util.List;
 
 public class AdminDashboardActivity extends AppCompatActivity {
 
-    private MaterialCardView cardManageBranches, cardManageServices, cardManageTechnicians, cardManageParts, cardCompletedOrders;
+    private MaterialCardView cardManageBranches, cardCompletedOrders;
     private RecyclerView adminRecyclerView;
     private TextView noAdminJobsText;
     private ImageView logoutIcon;
+
+    private TextView txtActiveRepairsCount, txtLowStockCount, txtRevenueAmount;
+    private PieChart devicePieChart;
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
@@ -51,13 +59,15 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         // Bind dashboard shortcut cards
         cardManageBranches = findViewById(R.id.cardManageBranches);
-        cardManageServices = findViewById(R.id.cardManageServices);
-        cardManageTechnicians = findViewById(R.id.cardManageTechnicians);
-        cardManageParts = findViewById(R.id.cardManageParts);
         cardCompletedOrders = findViewById(R.id.cardCompletedOrders);
         adminRecyclerView = findViewById(R.id.adminRecyclerView);
         noAdminJobsText = findViewById(R.id.noAdminJobsText);
         logoutIcon = findViewById(R.id.adminLogoutIcon);
+
+        txtActiveRepairsCount = findViewById(R.id.txtActiveRepairsCount);
+        txtLowStockCount = findViewById(R.id.txtLowStockCount);
+        txtRevenueAmount = findViewById(R.id.txtRevenueAmount);
+        devicePieChart = findViewById(R.id.devicePieChart);
 
         // RecyclerView setup
         adminRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -67,9 +77,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         // Setup CRUD Click Listeners
         cardManageBranches.setOnClickListener(v -> launchCrud("branches"));
-        cardManageServices.setOnClickListener(v -> launchCrud("services"));
-        cardManageTechnicians.setOnClickListener(v -> launchCrud("technicians"));
-        cardManageParts.setOnClickListener(v -> startActivity(new Intent(AdminDashboardActivity.this, AdminSparePartsActivity.class)));
         cardCompletedOrders.setOnClickListener(v -> startActivity(new Intent(AdminDashboardActivity.this, AdminCompletedOrdersActivity.class)));
 
         // Admin Bottom Navigation Click Listeners
@@ -78,6 +85,9 @@ public class AdminDashboardActivity extends AppCompatActivity {
         });
         findViewById(R.id.navAdminTechs).setOnClickListener(v -> launchCrud("technicians"));
         findViewById(R.id.navAdminServices).setOnClickListener(v -> launchCrud("services"));
+        findViewById(R.id.navAdminInventory).setOnClickListener(v -> {
+            startActivity(new Intent(AdminDashboardActivity.this, AdminSparePartsActivity.class));
+        });
         findViewById(R.id.navAdminProfile).setOnClickListener(v -> {
             Intent intent = new Intent(AdminDashboardActivity.this, com.techfix.app.customer.ProfileActivity.class);
             startActivity(intent);
@@ -107,30 +117,156 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
                         appointmentsList.clear();
+                        double totalRevenue = 0.0;
+                        int activeCount = 0;
+                        int mobileCount = 0;
+                        int computerCount = 0;
+
                         for (DocumentSnapshot doc : task.getResult()) {
                             Appointment appt = doc.toObject(Appointment.class);
                             if (appt != null) {
                                 mDbHelper.insertOrUpdateAppointment(appt);
-                                if (!"Completed".equalsIgnoreCase(appt.getStatus())) {
+                                
+                                // Calculate total revenue of all completed repair orders
+                                if ("Completed".equalsIgnoreCase(appt.getStatus()) || "Repair Completed".equalsIgnoreCase(appt.getStatus())) {
+                                    double cost = 3000.0; // Fallback cost
+                                    for (Service s : servicesList) {
+                                        if (s.getServiceId().equalsIgnoreCase(appt.getServiceId())) {
+                                            cost = s.getPrice();
+                                            break;
+                                        }
+                                    }
+                                    totalRevenue += cost;
+                                } else {
+                                    activeCount++;
                                     appointmentsList.add(appt);
+                                }
+
+                                // Count device category ratio
+                                String category = "Mobile";
+                                for (Service s : servicesList) {
+                                    if (s.getServiceId().equalsIgnoreCase(appt.getServiceId())) {
+                                        category = s.getCategory();
+                                        break;
+                                    }
+                                }
+                                if ("Computer".equalsIgnoreCase(category)) {
+                                    computerCount++;
+                                } else {
+                                    mobileCount++;
                                 }
                             }
                         }
+
+                        txtActiveRepairsCount.setText(String.valueOf(activeCount));
+                        txtRevenueAmount.setText(String.format("%,.0f LKR", totalRevenue));
+                        updatePieChart(mobileCount, computerCount);
+
                         adapter.setJobs(appointmentsList, servicesList);
                         noAdminJobsText.setVisibility(appointmentsList.isEmpty() ? View.VISIBLE : View.GONE);
+                        
+                        // Query spare parts count for stock alerts
+                        fetchLowStockPartsCount();
                     } else {
                         // Offline caching fallback
                         List<Appointment> cached = mDbHelper.getAppointmentsForCustomer("");
                         appointmentsList.clear();
+                        double totalRevenue = 0.0;
+                        int activeCount = 0;
+                        int mobileCount = 0;
+                        int computerCount = 0;
+
                         for (Appointment a : cached) {
                             if (!"Completed".equalsIgnoreCase(a.getStatus())) {
+                                activeCount++;
                                 appointmentsList.add(a);
+                            } else {
+                                double cost = 3000.0;
+                                for (Service s : servicesList) {
+                                    if (s.getServiceId().equalsIgnoreCase(a.getServiceId())) {
+                                        cost = s.getPrice();
+                                        break;
+                                    }
+                                }
+                                totalRevenue += cost;
+                            }
+
+                            String category = "Mobile";
+                            for (Service s : servicesList) {
+                                if (s.getServiceId().equalsIgnoreCase(a.getServiceId())) {
+                                    category = s.getCategory();
+                                    break;
+                                }
+                            }
+                            if ("Computer".equalsIgnoreCase(category)) {
+                                computerCount++;
+                            } else {
+                                mobileCount++;
                             }
                         }
+
+                        txtActiveRepairsCount.setText(String.valueOf(activeCount));
+                        txtRevenueAmount.setText(String.format("%,.0f LKR", totalRevenue));
+                        updatePieChart(mobileCount, computerCount);
+
                         adapter.setJobs(appointmentsList, servicesList);
                         noAdminJobsText.setVisibility(appointmentsList.isEmpty() ? View.VISIBLE : View.GONE);
+                        
+                        // Local SQLite count for low stock alerts
+                        int lowStockCount = 0;
+                        List<com.techfix.app.models.SparePart> localParts = mDbHelper.getAllSpareParts();
+                        for (com.techfix.app.models.SparePart sp : localParts) {
+                            if (sp.getQuantity() < sp.getMinimumStockLevel()) {
+                                lowStockCount++;
+                            }
+                        }
+                        txtLowStockCount.setText(String.valueOf(lowStockCount));
                     }
                 });
+    }
+
+    private void fetchLowStockPartsCount() {
+        mFirestore.collection("spareParts").get().addOnCompleteListener(task -> {
+            int lowStockCount = 0;
+            if (task.isSuccessful() && task.getResult() != null) {
+                for (DocumentSnapshot doc : task.getResult()) {
+                    com.techfix.app.models.SparePart part = doc.toObject(com.techfix.app.models.SparePart.class);
+                    if (part != null && part.getQuantity() < part.getMinimumStockLevel()) {
+                        lowStockCount++;
+                    }
+                }
+            }
+            txtLowStockCount.setText(String.valueOf(lowStockCount));
+        });
+    }
+
+    private void updatePieChart(int mobileCount, int computerCount) {
+        if (mobileCount == 0 && computerCount == 0) {
+            devicePieChart.clear();
+            return;
+        }
+
+        List<PieEntry> entries = new ArrayList<>();
+        if (mobileCount > 0) entries.add(new PieEntry(mobileCount, "Mobile"));
+        if (computerCount > 0) entries.add(new PieEntry(computerCount, "Computer"));
+
+        PieDataSet dataSet = new PieDataSet(entries, "");
+        dataSet.setColors(new int[]{Color.parseColor("#FF4081"), Color.parseColor("#3F51B5")});
+        dataSet.setValueTextSize(11f);
+        dataSet.setValueTextColor(Color.WHITE);
+
+        PieData data = new PieData(dataSet);
+        devicePieChart.setData(data);
+        devicePieChart.getDescription().setEnabled(false);
+        devicePieChart.setDrawHoleEnabled(true);
+        devicePieChart.setHoleColor(Color.TRANSPARENT);
+        devicePieChart.setHoleRadius(50f);
+        devicePieChart.setTransparentCircleRadius(55f);
+        devicePieChart.setDrawEntryLabels(false);
+        devicePieChart.getLegend().setEnabled(true);
+        devicePieChart.getLegend().setTextColor(Color.parseColor("#757575"));
+        devicePieChart.animateY(800);
+        devicePieChart.invalidate();
     }
 
     private void redirectToLogin() {

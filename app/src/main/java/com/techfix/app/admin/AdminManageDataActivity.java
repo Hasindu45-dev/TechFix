@@ -1,11 +1,15 @@
 package com.techfix.app.admin;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
+import android.widget.ImageView;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -88,6 +92,7 @@ public class AdminManageDataActivity extends AppCompatActivity {
         fabAdd.setOnClickListener(v -> showAddDialog());
 
         loadData();
+        setupBottomNavigation();
     }
 
     private void loadData() {
@@ -179,56 +184,94 @@ public class AdminManageDataActivity extends AppCompatActivity {
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(48, 24, 48, 24);
 
-        final EditText input1 = new EditText(this);
-        final EditText input2 = new EditText(this);
-        final EditText input3 = new EditText(this);
+        if ("technicians".equalsIgnoreCase(manageType)) {
+            final EditText nameInput = new EditText(this);
+            nameInput.setHint("Technician Name");
+            nameInput.setSingleLine(true);
+            
+            final Spinner specSpinner = new Spinner(this);
+            ArrayAdapter<String> specAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new String[]{"Mobile", "Laptop"});
+            specAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            specSpinner.setAdapter(specAdapter);
 
-        if ("services".equalsIgnoreCase(manageType)) {
-            input1.setHint("Service Name (e.g. Screen Replacement)");
-            input2.setHint("Category (Mobile or Computer)");
-            input3.setHint("Price (LKR)");
-            input3.setInputType(InputType.TYPE_CLASS_NUMBER);
-            layout.addView(input1);
-            layout.addView(input2);
-            layout.addView(input3);
-        } else if ("technicians".equalsIgnoreCase(manageType)) {
-            input1.setHint("Technician Name");
-            input2.setHint("Specialization (Mobile or Laptop)");
-            input3.setHint("Branch ID (colombo or galle)");
-            layout.addView(input1);
-            layout.addView(input2);
-            layout.addView(input3);
-        } else if ("spare_parts".equalsIgnoreCase(manageType)) {
-            input1.setHint("Part Name (e.g. Laptop Screen)");
-            input2.setHint("Quantity");
-            input2.setInputType(InputType.TYPE_CLASS_NUMBER);
-            input3.setHint("Branch ID (colombo or galle)");
-            layout.addView(input1);
-            layout.addView(input2);
-            layout.addView(input3);
+            final TextView specLabel = new TextView(this);
+            specLabel.setText("Specialization:");
+            specLabel.setPadding(8, 16, 8, 4);
+
+            final Spinner branchSpinner = new Spinner(this);
+            ArrayAdapter<String> branchAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new String[]{"Colombo", "Galle"});
+            branchAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            branchSpinner.setAdapter(branchAdapter);
+
+            final TextView branchLabel = new TextView(this);
+            branchLabel.setText("Branch:");
+            branchLabel.setPadding(8, 16, 8, 4);
+
+            layout.addView(nameInput);
+            layout.addView(specLabel);
+            layout.addView(specSpinner);
+            layout.addView(branchLabel);
+            layout.addView(branchSpinner);
+
+            builder.setView(layout);
+
+            builder.setPositiveButton("Add", (dialog, which) -> {
+                String val1 = nameInput.getText().toString().trim();
+                String val2 = specSpinner.getSelectedItem().toString();
+                String val3 = branchSpinner.getSelectedItem().toString().toLowerCase();
+
+                if (TextUtils.isEmpty(val1)) {
+                    Toast.makeText(this, "Technician Name cannot be empty", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                saveNewRecord(val1, val2, val3);
+            });
         } else {
-            input1.setHint("Branch Name");
-            input2.setHint("Location Address");
-            input3.setHint("GPS Coordinates (Lat,Lng)");
-            layout.addView(input1);
-            layout.addView(input2);
-            layout.addView(input3);
-        }
+            final EditText input1 = new EditText(this);
+            final EditText input2 = new EditText(this);
+            final EditText input3 = new EditText(this);
 
-        builder.setView(layout);
-
-        builder.setPositiveButton("Add", (dialog, which) -> {
-            String val1 = input1.getText().toString().trim();
-            String val2 = input2.getText().toString().trim();
-            String val3 = input3.getText().toString().trim();
-
-            if (TextUtils.isEmpty(val1) || TextUtils.isEmpty(val2)) {
-                Toast.makeText(this, "Required fields are empty", Toast.LENGTH_SHORT).show();
-                return;
+            if ("services".equalsIgnoreCase(manageType)) {
+                input1.setHint("Service Name (e.g. Screen Replacement)");
+                input2.setHint("Category (Mobile or Computer)");
+                input3.setHint("Price (LKR)");
+                input3.setInputType(InputType.TYPE_CLASS_NUMBER);
+                layout.addView(input1);
+                layout.addView(input2);
+                layout.addView(input3);
+            } else if ("spare_parts".equalsIgnoreCase(manageType)) {
+                input1.setHint("Part Name (e.g. Laptop Screen)");
+                input2.setHint("Quantity");
+                input2.setInputType(InputType.TYPE_CLASS_NUMBER);
+                input3.setHint("Branch ID (colombo or galle)");
+                layout.addView(input1);
+                layout.addView(input2);
+                layout.addView(input3);
+            } else {
+                input1.setHint("Branch Name");
+                input2.setHint("Location Address");
+                input3.setHint("GPS Coordinates (Lat,Lng)");
+                layout.addView(input1);
+                layout.addView(input2);
+                layout.addView(input3);
             }
 
-            saveNewRecord(val1, val2, val3);
-        });
+            builder.setView(layout);
+
+            builder.setPositiveButton("Add", (dialog, which) -> {
+                String val1 = input1.getText().toString().trim();
+                String val2 = input2.getText().toString().trim();
+                String val3 = input3.getText().toString().trim();
+
+                if (TextUtils.isEmpty(val1) || TextUtils.isEmpty(val2)) {
+                    Toast.makeText(this, "Required fields are empty", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                saveNewRecord(val1, val2, val3);
+            });
+        }
 
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
         builder.show();
@@ -275,52 +318,107 @@ public class AdminManageDataActivity extends AppCompatActivity {
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(48, 24, 48, 24);
 
-        final EditText input1 = new EditText(this);
-        final EditText input2 = new EditText(this);
-        final EditText input3 = new EditText(this);
-
-        layout.addView(input1);
-        layout.addView(input2);
-        layout.addView(input3);
-
-        // Prepopulate based on type
-        if ("services".equalsIgnoreCase(manageType) && item.rawObject instanceof Service) {
-            Service s = (Service) item.rawObject;
-            input1.setText(s.getName());
-            input2.setText(s.getCategory());
-            input3.setText(String.valueOf(s.getPrice()));
-            input3.setInputType(InputType.TYPE_CLASS_NUMBER);
-        } else if ("technicians".equalsIgnoreCase(manageType) && item.rawObject instanceof Technician) {
+        if ("technicians".equalsIgnoreCase(manageType) && item.rawObject instanceof Technician) {
             Technician t = (Technician) item.rawObject;
-            input1.setText(t.getName());
-            input2.setText(t.getSpecialization());
-            input3.setText(t.getBranchId());
-        } else if ("spare_parts".equalsIgnoreCase(manageType) && item.rawObject instanceof SparePart) {
-            SparePart sp = (SparePart) item.rawObject;
-            input1.setText(sp.getName());
-            input2.setText(String.valueOf(sp.getQuantity()));
-            input2.setInputType(InputType.TYPE_CLASS_NUMBER);
-            input3.setText(sp.getBranchId());
-        } else if (item.rawObject instanceof Branch) {
-            Branch b = (Branch) item.rawObject;
-            input1.setText(b.getName());
-            input2.setText(b.getAddress());
-            input3.setText(b.getLatitude() + "," + b.getLongitude());
+
+            final EditText nameInput = new EditText(this);
+            nameInput.setHint("Technician Name");
+            nameInput.setText(t.getName());
+            nameInput.setSingleLine(true);
+            
+            final Spinner specSpinner = new Spinner(this);
+            ArrayAdapter<String> specAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new String[]{"Mobile", "Laptop"});
+            specAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            specSpinner.setAdapter(specAdapter);
+            // Pre-select current specialization
+            if ("laptop".equalsIgnoreCase(t.getSpecialization())) {
+                specSpinner.setSelection(1);
+            } else {
+                specSpinner.setSelection(0);
+            }
+
+            final TextView specLabel = new TextView(this);
+            specLabel.setText("Specialization:");
+            specLabel.setPadding(8, 16, 8, 4);
+
+            final Spinner branchSpinner = new Spinner(this);
+            ArrayAdapter<String> branchAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new String[]{"Colombo", "Galle"});
+            branchAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            branchSpinner.setAdapter(branchAdapter);
+            // Pre-select current branch
+            if ("galle".equalsIgnoreCase(t.getBranchId())) {
+                branchSpinner.setSelection(1);
+            } else {
+                branchSpinner.setSelection(0);
+            }
+
+            final TextView branchLabel = new TextView(this);
+            branchLabel.setText("Branch:");
+            branchLabel.setPadding(8, 16, 8, 4);
+
+            layout.addView(nameInput);
+            layout.addView(specLabel);
+            layout.addView(specSpinner);
+            layout.addView(branchLabel);
+            layout.addView(branchSpinner);
+
+            builder.setView(layout);
+
+            builder.setPositiveButton("Save", (dialog, which) -> {
+                String val1 = nameInput.getText().toString().trim();
+                String val2 = specSpinner.getSelectedItem().toString();
+                String val3 = branchSpinner.getSelectedItem().toString().toLowerCase();
+
+                if (TextUtils.isEmpty(val1)) {
+                    Toast.makeText(this, "Technician Name cannot be empty", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                updateRecord(item.id, val1, val2, val3);
+            });
         } else {
-            input1.setText(item.title);
-            input2.setText(item.subtitle);
-            input3.setVisibility(View.GONE);
+            final EditText input1 = new EditText(this);
+            final EditText input2 = new EditText(this);
+            final EditText input3 = new EditText(this);
+
+            layout.addView(input1);
+            layout.addView(input2);
+            layout.addView(input3);
+
+            // Prepopulate based on type
+            if ("services".equalsIgnoreCase(manageType) && item.rawObject instanceof Service) {
+                Service s = (Service) item.rawObject;
+                input1.setText(s.getName());
+                input2.setText(s.getCategory());
+                input3.setText(String.valueOf(s.getPrice()));
+                input3.setInputType(InputType.TYPE_CLASS_NUMBER);
+            } else if ("spare_parts".equalsIgnoreCase(manageType) && item.rawObject instanceof SparePart) {
+                SparePart sp = (SparePart) item.rawObject;
+                input1.setText(sp.getName());
+                input2.setText(String.valueOf(sp.getQuantity()));
+                input2.setInputType(InputType.TYPE_CLASS_NUMBER);
+                input3.setText(sp.getBranchId());
+            } else if (item.rawObject instanceof Branch) {
+                Branch b = (Branch) item.rawObject;
+                input1.setText(b.getName());
+                input2.setText(b.getAddress());
+                input3.setText(b.getLatitude() + "," + b.getLongitude());
+            } else {
+                input1.setText(item.title);
+                input2.setText(item.subtitle);
+                input3.setVisibility(View.GONE);
+            }
+
+            builder.setView(layout);
+
+            builder.setPositiveButton("Save", (dialog, which) -> {
+                String val1 = input1.getText().toString().trim();
+                String val2 = input2.getText().toString().trim();
+                String val3 = input3.getText().toString().trim();
+
+                updateRecord(item.id, val1, val2, val3);
+            });
         }
-
-        builder.setView(layout);
-
-        builder.setPositiveButton("Save", (dialog, which) -> {
-            String val1 = input1.getText().toString().trim();
-            String val2 = input2.getText().toString().trim();
-            String val3 = input3.getText().toString().trim();
-
-            updateRecord(item.id, val1, val2, val3);
-        });
 
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
         builder.show();
@@ -370,5 +468,79 @@ public class AdminManageDataActivity extends AppCompatActivity {
     private String capitalize(String str) {
         if (str == null || str.isEmpty()) return "";
         return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
+    private void setupBottomNavigation() {
+        ImageView imgHome = findViewById(R.id.imgNavAdminHome);
+        TextView txtHome = findViewById(R.id.txtNavAdminHome);
+        ImageView imgTechs = findViewById(R.id.imgNavAdminTechs);
+        TextView txtTechs = findViewById(R.id.txtNavAdminTechs);
+        ImageView imgServices = findViewById(R.id.imgNavAdminServices);
+        TextView txtServices = findViewById(R.id.txtNavAdminServices);
+        ImageView imgInventory = findViewById(R.id.imgNavAdminInventory);
+        TextView txtInventory = findViewById(R.id.txtNavAdminInventory);
+
+        // Reset all to light color first
+        int lightColor = getResources().getColor(R.color.primaryLightColor);
+        int activeColor = getResources().getColor(R.color.secondaryColor);
+
+        imgHome.setImageTintList(android.content.res.ColorStateList.valueOf(lightColor));
+        txtHome.setTextColor(lightColor);
+        imgTechs.setImageTintList(android.content.res.ColorStateList.valueOf(lightColor));
+        txtTechs.setTextColor(lightColor);
+        imgServices.setImageTintList(android.content.res.ColorStateList.valueOf(lightColor));
+        txtServices.setTextColor(lightColor);
+        imgInventory.setImageTintList(android.content.res.ColorStateList.valueOf(lightColor));
+        txtInventory.setTextColor(lightColor);
+
+        if ("technicians".equalsIgnoreCase(manageType)) {
+            imgTechs.setImageTintList(android.content.res.ColorStateList.valueOf(activeColor));
+            txtTechs.setTextColor(activeColor);
+        } else if ("services".equalsIgnoreCase(manageType)) {
+            imgServices.setImageTintList(android.content.res.ColorStateList.valueOf(activeColor));
+            txtServices.setTextColor(activeColor);
+        }
+
+        findViewById(R.id.navAdminHome).setOnClickListener(v -> {
+            Intent intent = new Intent(AdminManageDataActivity.this, AdminDashboardActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
+        });
+
+        findViewById(R.id.navAdminTechs).setOnClickListener(v -> {
+            if ("technicians".equalsIgnoreCase(manageType)) {
+                Toast.makeText(AdminManageDataActivity.this, "Already on Technicians screen", Toast.LENGTH_SHORT).show();
+            } else {
+                switchManageType("technicians");
+            }
+        });
+
+        findViewById(R.id.navAdminServices).setOnClickListener(v -> {
+            if ("services".equalsIgnoreCase(manageType)) {
+                Toast.makeText(AdminManageDataActivity.this, "Already on Services screen", Toast.LENGTH_SHORT).show();
+            } else {
+                switchManageType("services");
+            }
+        });
+
+        findViewById(R.id.navAdminInventory).setOnClickListener(v -> {
+            Intent intent = new Intent(AdminManageDataActivity.this, AdminSparePartsActivity.class);
+            startActivity(intent);
+            finish();
+        });
+
+        findViewById(R.id.navAdminProfile).setOnClickListener(v -> {
+            Intent intent = new Intent(AdminManageDataActivity.this, com.techfix.app.customer.ProfileActivity.class);
+            startActivity(intent);
+            finish();
+        });
+    }
+
+    private void switchManageType(String type) {
+        Intent intent = new Intent(AdminManageDataActivity.this, AdminManageDataActivity.class);
+        intent.putExtra("MANAGE_TYPE", type);
+        startActivity(intent);
+        finish();
     }
 }

@@ -30,7 +30,7 @@
         android:layout_height="0dp"
         android:padding="8dp"
         app:layout_constraintTop_toBottomOf="@id/appBar"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toTopOf="@id/adminBottomNavigationCard" />
 
     <!-- Empty State -->
     <TextView
@@ -56,7 +56,145 @@
         android:contentDescription="Add New Record"
         app:tint="@color/white"
         app:backgroundTint="@color/secondaryColor"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/adminBottomNavigationCard"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Floating Capsule Bottom Navigation for Admin -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/adminBottomNavigationCard"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="48dp"
+        app:cardCornerRadius="32dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="@color/primaryColor"
+        app:strokeWidth="0dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            
+            <!-- Home tab -->
+            <LinearLayout
+                android:id="@+id/navAdminHome"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <ImageView
+                    android:id="@+id/imgNavAdminHome"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@android:drawable/ic_menu_today"
+                    app:tint="@color/primaryLightColor" />
+                <TextView
+                    android:id="@+id/txtNavAdminHome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Home"
+                    android:textSize="9sp"
+                    android:textColor="@color/primaryLightColor" />
+            </LinearLayout>
+
+            <!-- Technicians tab -->
+            <LinearLayout
+                android:id="@+id/navAdminTechs"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <ImageView
+                    android:id="@+id/imgNavAdminTechs"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@android:drawable/ic_menu_myplaces"
+                    app:tint="@color/primaryLightColor" />
+                <TextView
+                    android:id="@+id/txtNavAdminTechs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Techs"
+                    android:textSize="9sp"
+                    android:textColor="@color/primaryLightColor" />
+            </LinearLayout>
+
+            <!-- Services tab -->
+            <LinearLayout
+                android:id="@+id/navAdminServices"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <ImageView
+                    android:id="@+id/imgNavAdminServices"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@android:drawable/ic_menu_info_details"
+                    app:tint="@color/primaryLightColor" />
+                <TextView
+                    android:id="@+id/txtNavAdminServices"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Services"
+                    android:textSize="9sp"
+                    android:textColor="@color/primaryLightColor" />
+            </LinearLayout>
+
+            <!-- Inventory tab (Spare Parts) -->
+            <LinearLayout
+                android:id="@+id/navAdminInventory"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <ImageView
+                    android:id="@+id/imgNavAdminInventory"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@android:drawable/ic_menu_preferences"
+                    app:tint="@color/primaryLightColor" />
+                <TextView
+                    android:id="@+id/txtNavAdminInventory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Inventory"
+                    android:textSize="9sp"
+                    android:textColor="@color/primaryLightColor" />
+            </LinearLayout>
+
+            <!-- Profile tab -->
+            <LinearLayout
+                android:id="@+id/navAdminProfile"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <ImageView
+                    android:id="@+id/imgNavAdminProfile"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@android:drawable/ic_menu_info_details"
+                    app:tint="@color/primaryLightColor" />
+                <TextView
+                    android:id="@+id/txtNavAdminProfile"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Profile"
+                    android:textSize="9sp"
+                    android:textColor="@color/primaryLightColor" />
+            </LinearLayout>
+            
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
