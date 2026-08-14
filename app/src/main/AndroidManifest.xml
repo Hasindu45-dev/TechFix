@@ -65,9 +65,12 @@
             android:name=".maps.BranchLocatorActivity" 
             android:exported="false" />
 
-        <!-- Booking Activity -->
+        <!-- Booking & Catalog Activities -->
         <activity 
             android:name=".customer.BookAppointmentActivity" 
+            android:exported="false" />
+        <activity 
+            android:name=".customer.AllServicesActivity" 
             android:exported="false" />
 
         <!-- Repair Operations Activities -->

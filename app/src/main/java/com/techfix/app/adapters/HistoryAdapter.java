@@ -43,7 +43,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
 
     static class HistoryViewHolder extends RecyclerView.ViewHolder {
 
-        private final TextView idText, dateText, deviceText, serviceText, branchText, priceText, repairStatus, paymentStatus;
+        private final TextView idText, dateText, deviceText, serviceText, branchText, technicianText, priceText, repairStatus, paymentStatus;
 
         public HistoryViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -52,6 +52,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
             deviceText = itemView.findViewById(R.id.historyDeviceText);
             serviceText = itemView.findViewById(R.id.historyServiceText);
             branchText = itemView.findViewById(R.id.historyBranchText);
+            technicianText = itemView.findViewById(R.id.historyTechnicianText);
             priceText = itemView.findViewById(R.id.historyPriceText);
             repairStatus = itemView.findViewById(R.id.historyRepairStatus);
             paymentStatus = itemView.findViewById(R.id.historyPaymentStatus);
@@ -63,6 +64,15 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
             deviceText.setText(record.deviceModel);
             serviceText.setText(record.serviceName);
             branchText.setText(record.branchName);
+            
+            String techName = record.technicianName;
+            if (techName == null || techName.trim().isEmpty() || "Unassigned".equalsIgnoreCase(techName)) {
+                techName = "Pending Allocation";
+            }
+            if (technicianText != null) {
+                technicianText.setText("Technician: " + techName);
+            }
+
             priceText.setText("Rs. " + String.format("%,.2f", record.cost));
             repairStatus.setText(record.repairStatus);
             paymentStatus.setText(record.paymentStatus);

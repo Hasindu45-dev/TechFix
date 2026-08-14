@@ -70,6 +70,15 @@
             android:textColor="@color/textSecondary"
             android:layout_marginTop="4dp" />
 
+        <TextView
+            android:id="@+id/historyTechnicianText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Technician: Pending Allocation"
+            android:textSize="12sp"
+            android:textColor="@color/textSecondary"
+            android:layout_marginTop="2dp" />
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"

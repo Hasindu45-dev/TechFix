@@ -71,6 +71,7 @@ public class RepairHistoryActivity extends AppCompatActivity {
             // Offline Mode: Load strictly from SQLite
             offlineBanner.setVisibility(View.VISIBLE);
             List<DatabaseHelper.HistoryRecord> cachedList = mDbHelper.getHistoryForCustomer(customerId);
+            sortUnpaidToTop(cachedList);
             adapter.setHistoryRecords(cachedList);
             toggleEmptyState(cachedList.isEmpty());
             Toast.makeText(this, "Loaded cached offline data.", Toast.LENGTH_SHORT).show();
@@ -125,14 +126,6 @@ public class RepairHistoryActivity extends AppCompatActivity {
 
             // Sync with local SQLite DB
             String historyId = appt.getAppointmentId(); // Re-use appointment ID as history key
-            // Determine payment status
-            String payStatus = "Pending";
-            if ("Repair Completed".equalsIgnoreCase(appt.getStatus()) || "Ready for Pickup".equalsIgnoreCase(appt.getStatus())) {
-                // If repair finished, we will track payment status. In full app, it defaults to Pending until paid
-                payStatus = "Pending";
-            }
-            // For coursework demonstration, check if payment is already recorded in online system or set default
-            // In our system, the payment updates the status, so we can verify if it's completed
             
             // Check if user has updated it
             String dbPayStatus = mDbHelper.getHistoryForCustomer(customerId).stream()
@@ -140,6 +133,10 @@ public class RepairHistoryActivity extends AppCompatActivity {
                     .map(h -> h.paymentStatus)
                     .findFirst()
                     .orElse("Pending");
+
+            if ("Completed".equalsIgnoreCase(appt.getStatus())) {
+                dbPayStatus = "Completed";
+            }
             
             mDbHelper.insertOrUpdateHistory(
                     historyId,
@@ -154,6 +151,11 @@ public class RepairHistoryActivity extends AppCompatActivity {
                     appt.getStatus()
             );
 
+            String techName = appt.getAssignedTechnician();
+            if (techName == null || techName.trim().isEmpty() || "Unassigned".equalsIgnoreCase(techName)) {
+                techName = "Pending Allocation";
+            }
+
             recordsList.add(new DatabaseHelper.HistoryRecord(
                     historyId,
                     appt.getAppointmentId(),
@@ -161,6 +163,7 @@ public class RepairHistoryActivity extends AppCompatActivity {
                     appt.getDeviceModel(),
                     serviceName,
                     appt.getAssignedBranch(),
+                    techName,
                     appt.getDate(),
                     cost,
                     dbPayStatus,
@@ -168,13 +171,26 @@ public class RepairHistoryActivity extends AppCompatActivity {
             ));
         }
 
+        sortUnpaidToTop(recordsList);
         adapter.setHistoryRecords(recordsList);
         toggleEmptyState(recordsList.isEmpty());
+    }
+
+    private void sortUnpaidToTop(List<DatabaseHelper.HistoryRecord> list) {
+        if (list == null || list.isEmpty()) return;
+        java.util.Collections.sort(list, (r1, r2) -> {
+            boolean isPaid1 = "Completed".equalsIgnoreCase(r1.paymentStatus) || "Paid".equalsIgnoreCase(r1.paymentStatus);
+            boolean isPaid2 = "Completed".equalsIgnoreCase(r2.paymentStatus) || "Paid".equalsIgnoreCase(r2.paymentStatus);
+            if (!isPaid1 && isPaid2) return -1; // Unpaid comes first
+            if (isPaid1 && !isPaid2) return 1;
+            return 0;
+        });
     }
 
     private void loadHistoryOffline() {
         offlineBanner.setVisibility(View.VISIBLE);
         List<DatabaseHelper.HistoryRecord> cachedList = mDbHelper.getHistoryForCustomer(customerId);
+        sortUnpaidToTop(cachedList);
         adapter.setHistoryRecords(cachedList);
         toggleEmptyState(cachedList.isEmpty());
     }

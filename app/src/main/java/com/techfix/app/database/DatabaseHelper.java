@@ -495,6 +495,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         public String deviceModel;
         public String serviceName;
         public String branchName;
+        public String technicianName;
         public String date;
         public double cost;
         public String paymentStatus;
@@ -503,12 +504,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         public HistoryRecord(String id, String appointmentId, String customerId, String deviceModel, 
                              String serviceName, String branchName, String date, double cost, 
                              String paymentStatus, String repairStatus) {
+            this(id, appointmentId, customerId, deviceModel, serviceName, branchName, "Pending Allocation", date, cost, paymentStatus, repairStatus);
+        }
+
+        public HistoryRecord(String id, String appointmentId, String customerId, String deviceModel, 
+                             String serviceName, String branchName, String technicianName, String date, double cost, 
+                             String paymentStatus, String repairStatus) {
             this.id = id;
             this.appointmentId = appointmentId;
             this.customerId = customerId;
             this.deviceModel = deviceModel;
             this.serviceName = serviceName;
             this.branchName = branchName;
+            this.technicianName = technicianName;
             this.date = date;
             this.cost = cost;
             this.paymentStatus = paymentStatus;

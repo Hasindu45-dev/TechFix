@@ -386,7 +386,7 @@ public class BookAppointmentActivity extends AppCompatActivity {
                                 problemDesc,
                                 imageUrl,
                                 branchName,
-                                assignedTechnicianName,
+                                "Unassigned",
                                 status,
                                 date
                         );
@@ -402,8 +402,8 @@ public class BookAppointmentActivity extends AppCompatActivity {
                                         // Cache to local SQLite
                                         mDbHelper.insertOrUpdateAppointment(appt);
                                         
-                                        // Display Coursework Specific Success Dialog
-                                        showSuccessDialog(branchName, distanceKm, assignedTechnicianName, reason);
+                                        // Display Success Dialog
+                                        showSuccessDialog(branchName, distanceKm, reason);
                                     } else {
                                         Toast.makeText(BookAppointmentActivity.this, "Booking failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                                     }
@@ -419,17 +419,17 @@ public class BookAppointmentActivity extends AppCompatActivity {
                 });
     }
 
-    private void showSuccessDialog(String branchName, double distanceKm, String techName, String reason) {
+    private void showSuccessDialog(String branchName, double distanceKm, String reason) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         if ("Unassigned".equals(branchName)) {
             builder.setTitle("Appointment Submitted")
                     .setMessage("No suitable branch is currently available. Your repair request has been submitted and is waiting for required resources.");
         } else {
             builder.setTitle("Appointment Placed Successfully!")
-                    .setMessage("Your request has been automatically assigned to our closest available branch.\n\n"
+                    .setMessage("Your request has been assigned to our closest available branch.\n\n"
                             + "Assigned Branch: " + branchName + "\n"
                             + "Estimated Distance: " + String.format("%.1f km", distanceKm) + "\n"
-                            + "Assigned Technician: " + techName + "\n\n"
+                            + "Technician Assignment: Pending Allocation by Admin\n\n"
                             + "Assignment Rationale:\n" + reason);
         }
         builder.setPositiveButton("OK", (dialog, which) -> {

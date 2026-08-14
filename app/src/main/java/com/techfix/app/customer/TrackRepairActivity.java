@@ -116,8 +116,14 @@ public class TrackRepairActivity extends AppCompatActivity {
         // Cache first
         List<Appointment> cached = mDbHelper.getAppointmentsForCustomer(customerId);
         servicesList = mDbHelper.getAllServices();
-        if (!cached.isEmpty()) {
-            activeAppointments = cached;
+        List<Appointment> unpaidCached = new ArrayList<>();
+        for (Appointment a : cached) {
+            if (isUnpaid(a)) {
+                unpaidCached.add(a);
+            }
+        }
+        if (!unpaidCached.isEmpty()) {
+            activeAppointments = unpaidCached;
             populateTickets();
         }
 
@@ -133,40 +139,56 @@ public class TrackRepairActivity extends AppCompatActivity {
                         for (DocumentSnapshot doc : snapshots.getDocuments()) {
                             Appointment appt = doc.toObject(Appointment.class);
                             if (appt != null) {
-                                temp.add(appt);
                                 mDbHelper.insertOrUpdateAppointment(appt);
+                                if (isUnpaid(appt)) {
+                                    temp.add(appt);
+                                }
                             }
                         }
                         
-                        // Handle potential cancellations/deletions on server
-                        if (temp.isEmpty() && !activeAppointments.isEmpty()) {
-                            // If empty on server but we had cache, clear cache and UI
+                        // Handle potential cancellations/deletions on server or all orders paid
+                        if (temp.isEmpty()) {
                             activeAppointments.clear();
                             selectedAppointment = null;
                             populateTickets();
                             return;
                         }
 
-                        if (!temp.isEmpty()) {
-                            // Track previously selected ID to restore selection
-                            String selectedId = selectedAppointment != null ? selectedAppointment.getAppointmentId() : null;
-                            
-                            activeAppointments = temp;
-                            populateTickets();
+                        // Track previously selected ID to restore selection
+                        String selectedId = selectedAppointment != null ? selectedAppointment.getAppointmentId() : null;
+                        
+                        activeAppointments = temp;
+                        populateTickets();
 
-                            // Restore selection
-                            if (selectedId != null) {
-                                for (Appointment a : activeAppointments) {
-                                    if (a.getAppointmentId().equals(selectedId)) {
-                                        selectedAppointment = a;
-                                        displayAppointmentTimeline();
-                                        break;
-                                    }
+                        // Restore selection
+                        if (selectedId != null) {
+                            for (Appointment a : activeAppointments) {
+                                if (a.getAppointmentId().equals(selectedId)) {
+                                    selectedAppointment = a;
+                                    displayAppointmentTimeline();
+                                    break;
                                 }
                             }
                         }
                     }
                 });
+    }
+
+    private boolean isUnpaid(Appointment appt) {
+        if (appt == null) return false;
+        if ("Completed".equalsIgnoreCase(appt.getStatus())) {
+            return false;
+        }
+        List<DatabaseHelper.HistoryRecord> cachedHist = mDbHelper.getHistoryForCustomer(
+                mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : ""
+        );
+        for (DatabaseHelper.HistoryRecord h : cachedHist) {
+            if (h.appointmentId.equals(appt.getAppointmentId()) && 
+                    ("Completed".equalsIgnoreCase(h.paymentStatus) || "Paid".equalsIgnoreCase(h.paymentStatus))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void populateTickets() {

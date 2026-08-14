@@ -95,8 +95,9 @@ public class CustomerDashboardActivity extends AppCompatActivity {
 
         // Listeners
         txtSeeAllServices.setOnClickListener(v -> {
-            isShowingAllServices = !isShowingAllServices;
-            applyFilters();
+            Intent intent = new Intent(CustomerDashboardActivity.this, AllServicesActivity.class);
+            intent.putExtra(AllServicesActivity.EXTRA_CATEGORY_FILTER, currentCategoryFilter);
+            startActivity(intent);
         });
 
         // Search text watcher
