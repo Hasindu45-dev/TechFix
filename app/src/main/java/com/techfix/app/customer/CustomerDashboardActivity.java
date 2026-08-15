@@ -149,6 +149,11 @@ public class CustomerDashboardActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        View btnHeroBookNow = findViewById(R.id.btnHeroBookNow);
+        if (btnHeroBookNow != null) {
+            btnHeroBookNow.setOnClickListener(v -> navigateToBookingFlow(null));
+        }
+
         // Bottom Navigation Capsule click actions
         findViewById(R.id.navHome).setOnClickListener(v -> {
             findViewById(R.id.scrollViewContent).scrollTo(0, 0);
