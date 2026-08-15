@@ -1,7 +1,10 @@
 package com.techfix.app.admin;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,6 +27,7 @@ public class AdminCompletedOrdersActivity extends AppCompatActivity {
 
     private RecyclerView completedRecyclerView;
     private TextView noCompletedOrdersText;
+    private EditText searchEditText;
 
     private FirebaseFirestore mFirestore;
     private DatabaseHelper mDbHelper;
@@ -31,6 +35,7 @@ public class AdminCompletedOrdersActivity extends AppCompatActivity {
     private TechnicianJobsAdapter adapter;
     private List<Appointment> completedList = new ArrayList<>();
     private List<Service> servicesList = new ArrayList<>();
+    private String searchQuery = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,11 +56,27 @@ public class AdminCompletedOrdersActivity extends AppCompatActivity {
         // Bind Views
         completedRecyclerView = findViewById(R.id.completedRecyclerView);
         noCompletedOrdersText = findViewById(R.id.noCompletedOrdersText);
+        searchEditText = findViewById(R.id.searchEditText);
 
         // Setup RecyclerView
         completedRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new TechnicianJobsAdapter();
         completedRecyclerView.setAdapter(adapter);
+
+        // Search text watcher
+        searchEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                searchQuery = s.toString().trim().toLowerCase();
+                applySearchFilter();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
 
         loadCompletedOrders();
     }
@@ -75,8 +96,7 @@ public class AdminCompletedOrdersActivity extends AppCompatActivity {
                                 completedList.add(appt);
                             }
                         }
-                        adapter.setJobs(completedList, servicesList);
-                        noCompletedOrdersText.setVisibility(completedList.isEmpty() ? View.VISIBLE : View.GONE);
+                        applySearchFilter();
                     } else {
                         // Cache fallback
                         List<Appointment> cached = mDbHelper.getAppointmentsForCustomer("");
@@ -86,9 +106,30 @@ public class AdminCompletedOrdersActivity extends AppCompatActivity {
                                 completedList.add(a);
                             }
                         }
-                        adapter.setJobs(completedList, servicesList);
-                        noCompletedOrdersText.setVisibility(completedList.isEmpty() ? View.VISIBLE : View.GONE);
+                        applySearchFilter();
                     }
                 });
+    }
+
+    private void applySearchFilter() {
+        if (searchQuery.isEmpty()) {
+            adapter.setJobs(completedList, servicesList);
+            noCompletedOrdersText.setVisibility(completedList.isEmpty() ? View.VISIBLE : View.GONE);
+            return;
+        }
+
+        List<Appointment> filtered = new ArrayList<>();
+        for (Appointment appt : completedList) {
+            boolean matchesDevice = appt.getDeviceModel() != null && appt.getDeviceModel().toLowerCase().contains(searchQuery);
+            boolean matchesTicket = appt.getAppointmentId() != null && appt.getAppointmentId().toLowerCase().contains(searchQuery);
+            boolean matchesTech = appt.getAssignedTechnician() != null && appt.getAssignedTechnician().toLowerCase().contains(searchQuery);
+
+            if (matchesDevice || matchesTicket || matchesTech) {
+                filtered.add(appt);
+            }
+        }
+
+        adapter.setJobs(filtered, servicesList);
+        noCompletedOrdersText.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
     }
 }

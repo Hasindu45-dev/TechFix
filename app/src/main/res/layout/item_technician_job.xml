@@ -68,6 +68,15 @@
             android:textColor="@color/textPrimary"
             android:layout_marginTop="8dp" />
 
+        <TextView
+            android:id="@+id/jobTechnicianText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Technician: Kamal Perera"
+            android:textSize="13sp"
+            android:textColor="@color/primaryLightColor"
+            android:layout_marginTop="2dp" />
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"

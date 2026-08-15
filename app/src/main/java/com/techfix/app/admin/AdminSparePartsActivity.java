@@ -114,7 +114,15 @@ public class AdminSparePartsActivity extends AppCompatActivity {
         // Status filter dropdown setup
         ArrayAdapter<String> statusAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, STATUS_FILTER_OPTIONS);
         statusFilterAutoComplete.setAdapter(statusAdapter);
-        statusFilterAutoComplete.setText(STATUS_FILTER_OPTIONS[0], false);
+
+        String extraStockFilter = getIntent().getStringExtra("EXTRA_STOCK_FILTER");
+        if ("Low Stock".equalsIgnoreCase(extraStockFilter)) {
+            selectedStatusFilter = "Low Stock";
+            statusFilterAutoComplete.setText("Low Stock", false);
+        } else {
+            statusFilterAutoComplete.setText(STATUS_FILTER_OPTIONS[0], false);
+        }
+
         statusFilterAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
             selectedStatusFilter = STATUS_FILTER_OPTIONS[position];
             applyFilters();

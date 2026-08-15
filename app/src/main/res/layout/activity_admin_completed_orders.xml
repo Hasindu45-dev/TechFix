@@ -23,12 +23,49 @@
             app:titleTextColor="@color/white" />
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- Search Bar Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/searchCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        app:strokeWidth="1dp"
+        app:strokeColor="@color/dividerColor"
+        app:layout_constraintTop_toBottomOf="@id/appBar">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="12dp">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_search"
+                app:tint="@color/textSecondary" />
+            <EditText
+                android:id="@+id/searchEditText"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@android:color/transparent"
+                android:hint="Search device, ticket ID, or technician..."
+                android:textSize="14sp"
+                android:paddingStart="8dp"
+                android:inputType="text"
+                android:maxLines="1"
+                android:textColor="@color/textPrimary" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
     <!-- Empty State -->
     <TextView
         android:id="@+id/noCompletedOrdersText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="No completed orders found in database."
+        android:text="No completed orders found."
         android:textColor="@color/textSecondary"
         android:textSize="14sp"
         android:visibility="gone"
@@ -45,7 +82,7 @@
         android:layout_marginTop="8dp"
         android:padding="12dp"
         android:clipToPadding="false"
-        app:layout_constraintTop_toBottomOf="@id/appBar"
+        app:layout_constraintTop_toBottomOf="@id/searchCard"
         app:layout_constraintBottom_toBottomOf="parent"
         tools:listitem="@android:layout/simple_list_item_2" />
 

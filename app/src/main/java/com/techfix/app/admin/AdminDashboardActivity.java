@@ -79,6 +79,26 @@ public class AdminDashboardActivity extends AppCompatActivity {
         cardManageBranches.setOnClickListener(v -> launchCrud("branches"));
         cardCompletedOrders.setOnClickListener(v -> startActivity(new Intent(AdminDashboardActivity.this, AdminCompletedOrdersActivity.class)));
 
+        View cardLowStockParts = findViewById(R.id.cardLowStockParts);
+        if (cardLowStockParts != null) {
+            cardLowStockParts.setOnClickListener(v -> {
+                Intent intent = new Intent(AdminDashboardActivity.this, AdminSparePartsActivity.class);
+                intent.putExtra("EXTRA_STOCK_FILTER", "Low Stock");
+                startActivity(intent);
+            });
+        }
+
+        View cardActiveRepairs = findViewById(R.id.cardActiveRepairs);
+        View adminDashboardScrollView = findViewById(R.id.adminDashboardScrollView);
+        View adminListTitle = findViewById(R.id.adminListTitle);
+        if (cardActiveRepairs != null && adminDashboardScrollView != null && adminListTitle != null) {
+            cardActiveRepairs.setOnClickListener(v -> {
+                adminDashboardScrollView.post(() -> {
+                    adminDashboardScrollView.scrollTo(0, adminListTitle.getTop());
+                });
+            });
+        }
+
         // Admin Bottom Navigation Click Listeners
         findViewById(R.id.navAdminHome).setOnClickListener(v -> {
             Toast.makeText(this, "Already on Admin Dashboard", Toast.LENGTH_SHORT).show();

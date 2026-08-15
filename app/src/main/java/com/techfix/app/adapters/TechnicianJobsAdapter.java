@@ -63,7 +63,7 @@ public class TechnicianJobsAdapter extends RecyclerView.Adapter<TechnicianJobsAd
 
     static class JobViewHolder extends RecyclerView.ViewHolder {
 
-        private final TextView jobIdText, jobDateText, jobDeviceText, jobServiceText, jobCustomerText, jobStatusText;
+        private final TextView jobIdText, jobDateText, jobDeviceText, jobServiceText, jobCustomerText, jobTechnicianText, jobStatusText;
         private final MaterialButton btnUpdateJob;
 
         public JobViewHolder(@NonNull View itemView) {
@@ -73,6 +73,7 @@ public class TechnicianJobsAdapter extends RecyclerView.Adapter<TechnicianJobsAd
             jobDeviceText = itemView.findViewById(R.id.jobDeviceText);
             jobServiceText = itemView.findViewById(R.id.jobServiceText);
             jobCustomerText = itemView.findViewById(R.id.jobCustomerText);
+            jobTechnicianText = itemView.findViewById(R.id.jobTechnicianText);
             jobStatusText = itemView.findViewById(R.id.jobStatusText);
             btnUpdateJob = itemView.findViewById(R.id.btnUpdateJob);
         }
@@ -95,6 +96,15 @@ public class TechnicianJobsAdapter extends RecyclerView.Adapter<TechnicianJobsAd
             // In a full implementation, customer name and phone can be retrieved from users collection.
             // For this view, we display the customer's ID and contact detail fallback.
             jobCustomerText.setText("Client ID: " + appt.getCustomerId().substring(0, 8).toUpperCase());
+
+            String techName = appt.getAssignedTechnician();
+            if (techName == null || techName.trim().isEmpty() || "Unassigned".equalsIgnoreCase(techName)) {
+                techName = "Pending Allocation";
+            }
+            if (jobTechnicianText != null) {
+                jobTechnicianText.setText("Technician: " + techName);
+            }
+
             jobStatusText.setText(appt.getStatus());
 
             if ("Completed".equalsIgnoreCase(appt.getStatus())) {
