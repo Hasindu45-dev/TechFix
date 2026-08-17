@@ -28,7 +28,6 @@ import com.techfix.app.technician.TechnicianDashboardActivity;
 public class RegisterActivity extends AppCompatActivity {
 
     private TextInputEditText nameEditText, emailEditText, phoneEditText, addressEditText, passwordEditText, confirmPasswordEditText;
-    private AutoCompleteTextView roleAutoComplete;
     private MaterialButton registerButton;
     private TextView loginLink;
     private ProgressBar progressBar;
@@ -36,8 +35,6 @@ public class RegisterActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
     private DatabaseHelper mDbHelper;
-
-    private final String[] ROLES = {"Customer", "Technician", "Admin"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,18 +50,11 @@ public class RegisterActivity extends AppCompatActivity {
         emailEditText = findViewById(R.id.emailRegEditText);
         phoneEditText = findViewById(R.id.phoneEditText);
         addressEditText = findViewById(R.id.addressEditText);
-        roleAutoComplete = findViewById(R.id.roleAutoComplete);
         passwordEditText = findViewById(R.id.passwordRegEditText);
         confirmPasswordEditText = findViewById(R.id.confirmPasswordEditText);
         registerButton = findViewById(R.id.registerButton);
         loginLink = findViewById(R.id.loginLink);
         progressBar = findViewById(R.id.registerProgressBar);
-
-        // Setup dropdown adapter for roles
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, ROLES);
-        roleAutoComplete.setAdapter(adapter);
-        // Default selection
-        roleAutoComplete.setText(ROLES[0], false);
 
         registerButton.setOnClickListener(v -> handleRegistration());
 
@@ -79,7 +69,7 @@ public class RegisterActivity extends AppCompatActivity {
         String email = emailEditText.getText().toString().trim();
         String phone = phoneEditText.getText().toString().trim();
         String address = addressEditText.getText().toString().trim();
-        String role = roleAutoComplete.getText().toString().trim();
+        String role = "Customer"; // Self-registration is strictly restricted to Customers
         String password = passwordEditText.getText().toString();
         String confirmPassword = confirmPasswordEditText.getText().toString();
 
@@ -125,27 +115,20 @@ public class RegisterActivity extends AppCompatActivity {
 
                             // Save user to Firestore
                             mFirestore.collection("users").document(uid)
-                                    .set(user)
-                                    .addOnCompleteListener(dbTask -> {
-                                        progressBar.setVisibility(View.GONE);
-                                        registerButton.setEnabled(true);
-                                        if (dbTask.isSuccessful()) {
-                                            // Cache user to local SQLite
-                                            mDbHelper.insertOrUpdateUser(user);
+                                     .set(user)
+                                     .addOnCompleteListener(dbTask -> {
+                                         progressBar.setVisibility(View.GONE);
+                                         registerButton.setEnabled(true);
+                                         if (dbTask.isSuccessful()) {
+                                             // Cache user to local SQLite
+                                             mDbHelper.insertOrUpdateUser(user);
 
-                                            // If registering as a technician, auto-create technician collection document
-                                            if ("Technician".equalsIgnoreCase(role)) {
-                                                String branchId = (address != null && address.toLowerCase().contains("galle")) ? "galle" : "colombo";
-                                                Technician tech = new Technician(uid, name, "General", branchId, true);
-                                                mFirestore.collection("technicians").document(uid).set(tech);
-                                            }
-
-                                            Toast.makeText(RegisterActivity.this, "Registration Successful!", Toast.LENGTH_SHORT).show();
-                                            navigateToDashboard(role);
-                                        } else {
-                                            Toast.makeText(RegisterActivity.this, "Database error: " + dbTask.getException().getMessage(), Toast.LENGTH_LONG).show();
-                                        }
-                                    });
+                                             Toast.makeText(RegisterActivity.this, "Registration Successful!", Toast.LENGTH_SHORT).show();
+                                             navigateToCustomerDashboard();
+                                         } else {
+                                             Toast.makeText(RegisterActivity.this, "Database error: " + dbTask.getException().getMessage(), Toast.LENGTH_LONG).show();
+                                         }
+                                     });
                         }
                     } else {
                         progressBar.setVisibility(View.GONE);
@@ -155,15 +138,8 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
-    private void navigateToDashboard(String role) {
-        Intent intent;
-        if ("Admin".equalsIgnoreCase(role)) {
-            intent = new Intent(RegisterActivity.this, AdminDashboardActivity.class);
-        } else if ("Technician".equalsIgnoreCase(role)) {
-            intent = new Intent(RegisterActivity.this, TechnicianDashboardActivity.class);
-        } else {
-            intent = new Intent(RegisterActivity.this, CustomerDashboardActivity.class);
-        }
+    private void navigateToCustomerDashboard() {
+        Intent intent = new Intent(RegisterActivity.this, CustomerDashboardActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();

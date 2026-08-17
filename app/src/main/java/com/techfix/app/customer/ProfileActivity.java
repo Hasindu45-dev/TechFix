@@ -24,7 +24,7 @@ import com.techfix.app.models.User;
 public class ProfileActivity extends AppCompatActivity {
 
     private TextView profileInitialsText, lblProfileName, lblProfileRole;
-    private TextInputEditText profileNameEditText, profileEmailEditText, profilePhoneEditText, profileAddressEditText;
+    private TextInputEditText profileNameEditText, profileEmailEditText, profilePhoneEditText, profileAddressEditText, profilePasswordEditText;
     private MaterialButton btnSaveProfile, btnLogout;
     private ProgressBar profileProgressBar;
 
@@ -58,6 +58,7 @@ public class ProfileActivity extends AppCompatActivity {
         profileEmailEditText = findViewById(R.id.profileEmailEditText);
         profilePhoneEditText = findViewById(R.id.profilePhoneEditText);
         profileAddressEditText = findViewById(R.id.profileAddressEditText);
+        profilePasswordEditText = findViewById(R.id.profilePasswordEditText);
         btnSaveProfile = findViewById(R.id.btnSaveProfile);
         btnLogout = findViewById(R.id.btnLogout);
         profileProgressBar = findViewById(R.id.profileProgressBar);
@@ -110,10 +111,14 @@ public class ProfileActivity extends AppCompatActivity {
 
         // Show/hide bottom bar depending on role
         boolean isAdmin = user.getRole() != null && user.getRole().equalsIgnoreCase("Admin");
+        boolean isTech = user.getRole() != null && user.getRole().equalsIgnoreCase("Technician");
         if (isAdmin) {
             findViewById(R.id.customerBottomNavigationCard).setVisibility(View.GONE);
             findViewById(R.id.adminBottomNavigationCard).setVisibility(View.VISIBLE);
             setupAdminBottomNavigation();
+        } else if (isTech) {
+            findViewById(R.id.customerBottomNavigationCard).setVisibility(View.GONE);
+            findViewById(R.id.adminBottomNavigationCard).setVisibility(View.GONE);
         } else {
             findViewById(R.id.customerBottomNavigationCard).setVisibility(View.VISIBLE);
             findViewById(R.id.adminBottomNavigationCard).setVisibility(View.GONE);
@@ -139,6 +144,7 @@ public class ProfileActivity extends AppCompatActivity {
         String name = profileNameEditText.getText().toString().trim();
         String phone = profilePhoneEditText.getText().toString().trim();
         String address = profileAddressEditText.getText().toString().trim();
+        String newPassword = profilePasswordEditText != null ? profilePasswordEditText.getText().toString().trim() : "";
 
         if (TextUtils.isEmpty(name)) {
             profileNameEditText.setError("Name is required");
@@ -152,17 +158,34 @@ public class ProfileActivity extends AppCompatActivity {
             profileAddressEditText.setError("Address is required");
             return;
         }
+        if (!TextUtils.isEmpty(newPassword) && newPassword.length() < 6) {
+            profilePasswordEditText.setError("Password must be at least 6 characters");
+            return;
+        }
 
         profileProgressBar.setVisibility(View.VISIBLE);
         btnSaveProfile.setEnabled(false);
 
+        if (!TextUtils.isEmpty(newPassword)) {
+            currentUser.updatePassword(newPassword)
+                    .addOnCompleteListener(pwTask -> {
+                        if (!pwTask.isSuccessful()) {
+                            Toast.makeText(ProfileActivity.this, "Password update error: " + pwTask.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        } else {
+                            if (profilePasswordEditText != null) profilePasswordEditText.setText("");
+                            Toast.makeText(ProfileActivity.this, "Password updated successfully!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }
+
         String uid = currentUser.getUid();
         String email = currentUser.getEmail();
         String role = (cachedUser != null && cachedUser.getRole() != null) ? cachedUser.getRole() : "Customer";
+        String oldName = (cachedUser != null && cachedUser.getName() != null) ? cachedUser.getName() : "";
         
         User updatedUser = new User(uid, name, email, phone, role, address);
 
-        // Update Firestore
+        // Update Firestore users collection
         mFirestore.collection("users").document(uid)
                 .set(updatedUser)
                 .addOnCompleteListener(task -> {
@@ -170,13 +193,38 @@ public class ProfileActivity extends AppCompatActivity {
                     btnSaveProfile.setEnabled(true);
 
                     if (task.isSuccessful()) {
-                        // Update SQLite cache
                         mDbHelper.insertOrUpdateUser(updatedUser);
                         lblProfileName.setText(name);
-                        
-                        // Update avatar initials
+
+                        // If user is a Technician, sync updated name & email to technicians collection and update assigned appointments
+                        if ("Technician".equalsIgnoreCase(role)) {
+                            mFirestore.collection("technicians").document(uid)
+                                    .update("name", name, "email", email)
+                                    .addOnFailureListener(e -> {
+                                        mFirestore.collection("technicians").document(uid).get()
+                                                .addOnSuccessListener(doc -> {
+                                                    if (doc.exists()) {
+                                                        mFirestore.collection("technicians").document(uid).update("name", name, "email", email);
+                                                    }
+                                                });
+                                    });
+
+                            if (!oldName.isEmpty() && !oldName.equalsIgnoreCase(name)) {
+                                mFirestore.collection("appointments")
+                                        .whereEqualTo("assignedTechnician", oldName)
+                                        .get()
+                                        .addOnSuccessListener(querySnapshot -> {
+                                            if (querySnapshot != null) {
+                                                for (DocumentSnapshot doc : querySnapshot) {
+                                                    mFirestore.collection("appointments").document(doc.getId())
+                                                            .update("assignedTechnician", name);
+                                                }
+                                            }
+                                        });
+                            }
+                        }
+
                         populateUI(updatedUser);
-                        
                         Toast.makeText(ProfileActivity.this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(ProfileActivity.this, "Update failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();

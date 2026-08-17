@@ -20,6 +20,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.techfix.app.R;
@@ -29,6 +31,7 @@ import com.techfix.app.models.Branch;
 import com.techfix.app.models.Service;
 import com.techfix.app.models.SparePart;
 import com.techfix.app.models.Technician;
+import com.techfix.app.models.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,41 +39,38 @@ import java.util.UUID;
 
 public class AdminManageDataActivity extends AppCompatActivity {
 
-    private String manageType;
+    private Toolbar toolbar;
+    private TextView titleText;
     private RecyclerView recyclerView;
-    private TextView emptyStateText;
+    private TextView emptyText;
     private FloatingActionButton fabAdd;
-    private GenericCrudAdapter adapter;
 
-    private FirebaseFirestore mFirestore;
     private DatabaseHelper mDbHelper;
-
-    private List<GenericCrudAdapter.CrudItem> crudItems = new ArrayList<>();
+    private FirebaseFirestore mFirestore;
+    private GenericCrudAdapter adapter;
+    private String manageType = "technicians";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_manage_data);
 
-        mFirestore = FirebaseFirestore.getInstance();
-        mDbHelper = new DatabaseHelper(this);
-
         manageType = getIntent().getStringExtra("MANAGE_TYPE");
-        if (manageType == null) manageType = "branches";
+        if (manageType == null) manageType = "technicians";
 
-        // Toolbar setup
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        mDbHelper = new DatabaseHelper(this);
+        mFirestore = FirebaseFirestore.getInstance();
+
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("Manage " + capitalize(manageType.replace("_", " ")));
             toolbar.setNavigationOnClickListener(v -> finish());
         }
 
-        // Customize header title
-        getSupportActionBar().setTitle("Manage " + capitalize(manageType.replace("_", " ")));
-
         recyclerView = findViewById(R.id.crudRecyclerView);
-        emptyStateText = findViewById(R.id.crudEmptyStateText);
+        emptyText = findViewById(R.id.crudEmptyStateText);
         fabAdd = findViewById(R.id.fabAdd);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -85,7 +85,7 @@ public class AdminManageDataActivity extends AppCompatActivity {
 
             @Override
             public void onDelete(GenericCrudAdapter.CrudItem item) {
-                showDeleteConfirmation(item);
+                showDeleteConfirmDialog(item);
             }
         });
 
@@ -96,55 +96,33 @@ public class AdminManageDataActivity extends AppCompatActivity {
     }
 
     private void loadData() {
-        crudItems.clear();
-        String collectionPath = getCollectionPath();
-
-        mFirestore.collection(collectionPath)
+        String path = getCollectionPath();
+        mFirestore.collection(path)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
+                        List<GenericCrudAdapter.CrudItem> list = new ArrayList<>();
                         for (DocumentSnapshot doc : task.getResult()) {
-                            GenericCrudAdapter.CrudItem ci = parseDocument(doc);
-                            if (ci != null) crudItems.add(ci);
+                            GenericCrudAdapter.CrudItem item = createCrudItem(doc);
+                            if (item != null) list.add(item);
                         }
-                        adapter.setItems(crudItems);
-                        emptyStateText.setVisibility(crudItems.isEmpty() ? View.VISIBLE : View.GONE);
+                        adapter.setItems(list);
+                        emptyText.setVisibility(list.isEmpty() ? View.VISIBLE : View.GONE);
                     } else {
-                        Toast.makeText(this, "Offline fallback: Showing local cache", Toast.LENGTH_SHORT).show();
-                        loadOfflineData();
+                        emptyText.setVisibility(View.VISIBLE);
+                        Toast.makeText(this, "Failed to load data from server.", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
-    private void loadOfflineData() {
-        // Fallback SQLite loaders
-        crudItems.clear();
-        if ("branches".equalsIgnoreCase(manageType)) {
-            // Colombo & Galle static check
-            crudItems.add(new GenericCrudAdapter.CrudItem("colombo", "TechFix Colombo", "Location: Colombo 03", null));
-            crudItems.add(new GenericCrudAdapter.CrudItem("galle", "TechFix Galle", "Location: Galle Fort", null));
-        } else if ("services".equalsIgnoreCase(manageType)) {
-            List<Service> services = mDbHelper.getAllServices();
-            for (Service s : services) {
-                crudItems.add(new GenericCrudAdapter.CrudItem(
-                        s.getServiceId(), s.getName(), "Rs. " + s.getPrice() + " (" + s.getCategory() + ")", s
-                ));
-            }
-        }
-        adapter.setItems(crudItems);
-        emptyStateText.setVisibility(crudItems.isEmpty() ? View.VISIBLE : View.GONE);
-    }
-
     private String getCollectionPath() {
-        switch (manageType) {
-            case "services": return "services";
-            case "technicians": return "technicians";
-            case "spare_parts": return "spare_parts";
-            default: return "branches";
-        }
+        if ("services".equalsIgnoreCase(manageType)) return "services";
+        if ("technicians".equalsIgnoreCase(manageType)) return "technicians";
+        if ("spare_parts".equalsIgnoreCase(manageType)) return "spareParts";
+        return "branches";
     }
 
-    private GenericCrudAdapter.CrudItem parseDocument(DocumentSnapshot doc) {
+    private GenericCrudAdapter.CrudItem createCrudItem(DocumentSnapshot doc) {
         String id = doc.getId();
         if ("services".equalsIgnoreCase(manageType)) {
             Service s = doc.toObject(Service.class);
@@ -154,7 +132,8 @@ public class AdminManageDataActivity extends AppCompatActivity {
         } else if ("technicians".equalsIgnoreCase(manageType)) {
             Technician t = doc.toObject(Technician.class);
             if (t != null) {
-                return new GenericCrudAdapter.CrudItem(id, t.getName(), "Spec: " + t.getSpecialization() + " (Branch: " + t.getBranchId() + ")", t);
+                String emailStr = (t.getEmail() != null && !t.getEmail().isEmpty()) ? " (" + t.getEmail() + ")" : "";
+                return new GenericCrudAdapter.CrudItem(id, t.getName() + emailStr, "Spec: " + t.getSpecialization() + " (Branch: " + t.getBranchId() + ")", t);
             }
         } else if ("spare_parts".equalsIgnoreCase(manageType)) {
             SparePart sp = doc.toObject(SparePart.class);
@@ -171,14 +150,8 @@ public class AdminManageDataActivity extends AppCompatActivity {
     }
 
     private void showAddDialog() {
-        if ("services".equalsIgnoreCase(manageType)) {
-            android.content.Intent intent = new android.content.Intent(this, AdminAddEditServiceActivity.class);
-            startActivity(intent);
-            return;
-        }
-
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Add " + capitalize(manageType.substring(0, manageType.length() - (manageType.endsWith("s") ? 1 : 0))));
+        builder.setTitle("Add New");
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -188,9 +161,19 @@ public class AdminManageDataActivity extends AppCompatActivity {
             final EditText nameInput = new EditText(this);
             nameInput.setHint("Technician Name");
             nameInput.setSingleLine(true);
+
+            final EditText emailInput = new EditText(this);
+            emailInput.setHint("Technician Email");
+            emailInput.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+            emailInput.setSingleLine(true);
+
+            final EditText passwordInput = new EditText(this);
+            passwordInput.setHint("Initial Password (min 6 chars)");
+            passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            passwordInput.setSingleLine(true);
             
             final Spinner specSpinner = new Spinner(this);
-            ArrayAdapter<String> specAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new String[]{"Mobile", "Laptop"});
+            ArrayAdapter<String> specAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new String[]{"Mobile", "Computer"});
             specAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             specSpinner.setAdapter(specAdapter);
 
@@ -208,6 +191,8 @@ public class AdminManageDataActivity extends AppCompatActivity {
             branchLabel.setPadding(8, 16, 8, 4);
 
             layout.addView(nameInput);
+            layout.addView(emailInput);
+            layout.addView(passwordInput);
             layout.addView(specLabel);
             layout.addView(specSpinner);
             layout.addView(branchLabel);
@@ -216,65 +201,73 @@ public class AdminManageDataActivity extends AppCompatActivity {
             builder.setView(layout);
 
             builder.setPositiveButton("Add", (dialog, which) -> {
-                String val1 = nameInput.getText().toString().trim();
-                String val2 = specSpinner.getSelectedItem().toString();
-                String val3 = branchSpinner.getSelectedItem().toString().toLowerCase();
+                String name = nameInput.getText().toString().trim();
+                String email = emailInput.getText().toString().trim();
+                String password = passwordInput.getText().toString().trim();
+                String spec = specSpinner.getSelectedItem().toString();
+                String branch = branchSpinner.getSelectedItem().toString().toLowerCase();
 
-                if (TextUtils.isEmpty(val1)) {
-                    Toast.makeText(this, "Technician Name cannot be empty", Toast.LENGTH_SHORT).show();
+                if (TextUtils.isEmpty(name) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
+                    Toast.makeText(this, "Name, Email, and Password are required", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (password.length() < 6) {
+                    Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                saveNewRecord(val1, val2, val3);
+                saveNewTechnicianWithAuth(name, email, password, spec, branch);
             });
         } else {
             final EditText input1 = new EditText(this);
             final EditText input2 = new EditText(this);
             final EditText input3 = new EditText(this);
-
-            if ("services".equalsIgnoreCase(manageType)) {
-                input1.setHint("Service Name (e.g. Screen Replacement)");
-                input2.setHint("Category (Mobile or Computer)");
-                input3.setHint("Price (LKR)");
-                input3.setInputType(InputType.TYPE_CLASS_NUMBER);
-                layout.addView(input1);
-                layout.addView(input2);
-                layout.addView(input3);
-            } else if ("spare_parts".equalsIgnoreCase(manageType)) {
-                input1.setHint("Part Name (e.g. Laptop Screen)");
-                input2.setHint("Quantity");
-                input2.setInputType(InputType.TYPE_CLASS_NUMBER);
-                input3.setHint("Branch ID (colombo or galle)");
-                layout.addView(input1);
-                layout.addView(input2);
-                layout.addView(input3);
-            } else {
-                input1.setHint("Branch Name");
-                input2.setHint("Location Address");
-                input3.setHint("GPS Coordinates (Lat,Lng)");
-                layout.addView(input1);
-                layout.addView(input2);
-                layout.addView(input3);
-            }
-
+            layout.addView(input1);
+            layout.addView(input2);
+            layout.addView(input3);
             builder.setView(layout);
-
             builder.setPositiveButton("Add", (dialog, which) -> {
-                String val1 = input1.getText().toString().trim();
-                String val2 = input2.getText().toString().trim();
-                String val3 = input3.getText().toString().trim();
-
-                if (TextUtils.isEmpty(val1) || TextUtils.isEmpty(val2)) {
-                    Toast.makeText(this, "Required fields are empty", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                saveNewRecord(val1, val2, val3);
+                saveNewRecord(input1.getText().toString().trim(), input2.getText().toString().trim(), input3.getText().toString().trim());
             });
         }
 
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
         builder.show();
+    }
+
+    private void saveNewTechnicianWithAuth(String name, String email, String password, String spec, String branch) {
+        FirebaseApp secondaryApp;
+        try {
+            secondaryApp = FirebaseApp.getInstance("SecondaryAuthApp");
+        } catch (Exception e) {
+            secondaryApp = FirebaseApp.initializeApp(this, FirebaseApp.getInstance().getOptions(), "SecondaryAuthApp");
+        }
+
+        FirebaseAuth secondaryAuth = FirebaseAuth.getInstance(secondaryApp);
+        secondaryAuth.createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener(authResult -> {
+                    if (authResult.getUser() != null) {
+                        String techUid = authResult.getUser().getUid();
+
+                        User techUser = new User(techUid, name, email, "", "Technician", branch);
+                        Technician tech = new Technician(techUid, name, email, spec, branch, true);
+
+                        mFirestore.collection("users").document(techUid).set(techUser);
+                        mFirestore.collection("technicians").document(techUid).set(tech)
+                                .addOnSuccessListener(aVoid -> {
+                                    secondaryAuth.signOut();
+                                    Toast.makeText(AdminManageDataActivity.this, "Technician account created successfully!", Toast.LENGTH_SHORT).show();
+                                    loadData();
+                                })
+                                .addOnFailureListener(e -> {
+                                    secondaryAuth.signOut();
+                                    Toast.makeText(AdminManageDataActivity.this, "Error saving record: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(AdminManageDataActivity.this, "Failed to create Auth account: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 
     private void saveNewRecord(String val1, String val2, String val3) {
@@ -287,30 +280,21 @@ public class AdminManageDataActivity extends AppCompatActivity {
             record = new Service(id, val1, val2, "General coursework service description", price, "1-2 Days", "");
             mDbHelper.insertOrUpdateService((Service) record);
         } else if ("technicians".equalsIgnoreCase(manageType)) {
-            record = new Technician(id, val1, val2, val3, true);
+            record = new Technician(id, val1, "", val2, val3, true);
         } else if ("spare_parts".equalsIgnoreCase(manageType)) {
             int qty = Integer.parseInt(val2.isEmpty() ? "0" : val2);
-            record = new SparePart(id, val1, qty, 1500.0, val3); // Default mock price 1500.0
+            record = new SparePart(id, val1, qty, 1500.0, val3);
         } else {
-            record = new Branch(id, val1, val2, 6.92, 79.86); // Mock coords
+            record = new Branch(id, val1, val2, 6.92, 79.86);
         }
 
-        mFirestore.collection(path).document(id)
-                .set(record)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Record saved successfully!", Toast.LENGTH_SHORT).show();
-                    loadData();
-                });
+        mFirestore.collection(path).document(id).set(record).addOnSuccessListener(aVoid -> {
+            Toast.makeText(this, "Saved successfully!", Toast.LENGTH_SHORT).show();
+            loadData();
+        });
     }
 
     private void showEditDialog(GenericCrudAdapter.CrudItem item) {
-        if ("services".equalsIgnoreCase(manageType) && item.rawObject instanceof Service) {
-            android.content.Intent intent = new android.content.Intent(this, AdminAddEditServiceActivity.class);
-            intent.putExtra("SERVICE_ID", ((Service) item.rawObject).getServiceId());
-            startActivity(intent);
-            return;
-        }
-
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Edit Record");
 
@@ -325,13 +309,19 @@ public class AdminManageDataActivity extends AppCompatActivity {
             nameInput.setHint("Technician Name");
             nameInput.setText(t.getName());
             nameInput.setSingleLine(true);
+
+            final EditText emailInput = new EditText(this);
+            emailInput.setHint("Email (Read-only)");
+            emailInput.setText(t.getEmail() != null ? t.getEmail() : "");
+            emailInput.setEnabled(false);
+            emailInput.setFocusable(false);
+            emailInput.setSingleLine(true);
             
             final Spinner specSpinner = new Spinner(this);
-            ArrayAdapter<String> specAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new String[]{"Mobile", "Laptop"});
+            ArrayAdapter<String> specAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new String[]{"Mobile", "Computer"});
             specAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             specSpinner.setAdapter(specAdapter);
-            // Pre-select current specialization
-            if ("laptop".equalsIgnoreCase(t.getSpecialization())) {
+            if ("computer".equalsIgnoreCase(t.getSpecialization()) || "laptop".equalsIgnoreCase(t.getSpecialization())) {
                 specSpinner.setSelection(1);
             } else {
                 specSpinner.setSelection(0);
@@ -345,7 +335,6 @@ public class AdminManageDataActivity extends AppCompatActivity {
             ArrayAdapter<String> branchAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new String[]{"Colombo", "Galle"});
             branchAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             branchSpinner.setAdapter(branchAdapter);
-            // Pre-select current branch
             if ("galle".equalsIgnoreCase(t.getBranchId())) {
                 branchSpinner.setSelection(1);
             } else {
@@ -357,6 +346,7 @@ public class AdminManageDataActivity extends AppCompatActivity {
             branchLabel.setPadding(8, 16, 8, 4);
 
             layout.addView(nameInput);
+            layout.addView(emailInput);
             layout.addView(specLabel);
             layout.addView(specSpinner);
             layout.addView(branchLabel);
@@ -374,7 +364,7 @@ public class AdminManageDataActivity extends AppCompatActivity {
                     return;
                 }
 
-                updateRecord(item.id, val1, val2, val3);
+                updateTechnicianRecord(t.getTechnicianId(), t.getName(), val1, t.getEmail(), val2, val3);
             });
         } else {
             final EditText input1 = new EditText(this);
@@ -385,7 +375,6 @@ public class AdminManageDataActivity extends AppCompatActivity {
             layout.addView(input2);
             layout.addView(input3);
 
-            // Prepopulate based on type
             if ("services".equalsIgnoreCase(manageType) && item.rawObject instanceof Service) {
                 Service s = (Service) item.rawObject;
                 input1.setText(s.getName());
@@ -424,6 +413,34 @@ public class AdminManageDataActivity extends AppCompatActivity {
         builder.show();
     }
 
+    private void updateTechnicianRecord(String techId, String oldName, String newName, String email, String spec, String branch) {
+        Technician updatedTech = new Technician(techId, newName, email, spec, branch, true);
+
+        mFirestore.collection("technicians").document(techId)
+                .set(updatedTech)
+                .addOnSuccessListener(aVoid -> {
+                    mFirestore.collection("users").document(techId)
+                            .update("name", newName, "address", branch);
+
+                    if (oldName != null && !oldName.isEmpty() && !oldName.equalsIgnoreCase(newName)) {
+                        mFirestore.collection("appointments")
+                                .whereEqualTo("assignedTechnician", oldName)
+                                .get()
+                                .addOnSuccessListener(querySnapshot -> {
+                                    if (querySnapshot != null) {
+                                        for (DocumentSnapshot doc : querySnapshot) {
+                                            mFirestore.collection("appointments").document(doc.getId())
+                                                    .update("assignedTechnician", newName);
+                                        }
+                                    }
+                                });
+                    }
+
+                    Toast.makeText(this, "Technician record updated successfully!", Toast.LENGTH_SHORT).show();
+                    loadData();
+                });
+    }
+
     private void updateRecord(String id, String val1, String val2, String val3) {
         String path = getCollectionPath();
 
@@ -433,10 +450,10 @@ public class AdminManageDataActivity extends AppCompatActivity {
             record = new Service(id, val1, val2, "General coursework service description", price, "1-2 Days", "");
             mDbHelper.insertOrUpdateService((Service) record);
         } else if ("technicians".equalsIgnoreCase(manageType)) {
-            record = new Technician(id, val1, val2, val3, true);
+            record = new Technician(id, val1, "", val2, val3, true);
         } else if ("spare_parts".equalsIgnoreCase(manageType)) {
             int qty = Integer.parseInt(val2.isEmpty() ? "0" : val2);
-            record = new SparePart(id, val1, qty, 1500.0, val3); // Default mock price 1500.0
+            record = new SparePart(id, val1, qty, 1500.0, val3);
         } else {
             record = new Branch(id, val1, val2, 6.92, 79.86);
         }
@@ -449,7 +466,7 @@ public class AdminManageDataActivity extends AppCompatActivity {
                 });
     }
 
-    private void showDeleteConfirmation(GenericCrudAdapter.CrudItem item) {
+    private void showDeleteConfirmDialog(GenericCrudAdapter.CrudItem item) {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Record?")
                 .setMessage("Are you sure you want to permanently delete this record from the system?")

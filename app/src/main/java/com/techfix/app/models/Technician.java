@@ -3,6 +3,7 @@ package com.techfix.app.models;
 public class Technician {
     private String technicianId;
     private String name;
+    private String email;
     private String specialization; // e.g. "Laptop", "Mobile"
     private String branchId;
     private boolean availability;
@@ -12,8 +13,13 @@ public class Technician {
     }
 
     public Technician(String technicianId, String name, String specialization, String branchId, boolean availability) {
+        this(technicianId, name, "", specialization, branchId, availability);
+    }
+
+    public Technician(String technicianId, String name, String email, String specialization, String branchId, boolean availability) {
         this.technicianId = technicianId;
         this.name = name;
+        this.email = email;
         this.specialization = specialization;
         this.branchId = branchId;
         this.availability = availability;
@@ -33,6 +39,14 @@ public class Technician {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getSpecialization() {

@@ -29,7 +29,7 @@ import java.util.List;
 public class TechnicianDashboardActivity extends AppCompatActivity {
 
     private TextView technicianNameText, technicianBranchText, noJobsText;
-    private ImageView logoutIcon;
+    private ImageView techProfileIcon;
     private RecyclerView jobsRecyclerView;
     private TechnicianJobsAdapter adapter;
 
@@ -63,7 +63,7 @@ public class TechnicianDashboardActivity extends AppCompatActivity {
         technicianNameText = findViewById(R.id.technicianNameText);
         technicianBranchText = findViewById(R.id.technicianBranchText);
         noJobsText = findViewById(R.id.noJobsText);
-        logoutIcon = findViewById(R.id.logoutIcon);
+        techProfileIcon = findViewById(R.id.techProfileIcon);
         jobsRecyclerView = findViewById(R.id.jobsRecyclerView);
 
         jobsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -73,11 +73,12 @@ public class TechnicianDashboardActivity extends AppCompatActivity {
         // Load profile and jobs
         loadTechnicianProfile(currentUser.getUid());
 
-        logoutIcon.setOnClickListener(v -> {
-            mAuth.signOut();
-            Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
-            redirectToLogin();
-        });
+        if (techProfileIcon != null) {
+            techProfileIcon.setOnClickListener(v -> {
+                Intent intent = new Intent(TechnicianDashboardActivity.this, com.techfix.app.customer.ProfileActivity.class);
+                startActivity(intent);
+            });
+        }
 
         adapter.setOnJobClickListener(appt -> {
             Intent intent = new Intent(TechnicianDashboardActivity.this, TechnicianJobDetailActivity.class);
@@ -128,21 +129,34 @@ public class TechnicianDashboardActivity extends AppCompatActivity {
     }
 
     private void fetchJobs() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        String userEmail = (currentUser != null && currentUser.getEmail() != null) ? currentUser.getEmail().trim() : "";
+        String userId = (currentUser != null) ? currentUser.getUid() : "";
+
         if (technicianName == null || technicianName.isEmpty()) {
             technicianName = "Unassigned";
         }
 
+        String firstName = (technicianName.contains(" ")) ? technicianName.split(" ")[0] : technicianName;
+
         mFirestore.collection("appointments")
-                .whereEqualTo("assignedTechnician", technicianName)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
                         jobsList.clear();
                         for (DocumentSnapshot doc : task.getResult()) {
                             Appointment appt = doc.toObject(Appointment.class);
-                            if (appt != null) {
-                                jobsList.add(appt);
-                                mDbHelper.insertOrUpdateAppointment(appt);
+                            if (appt != null && appt.getAssignedTechnician() != null) {
+                                String assigned = appt.getAssignedTechnician().trim();
+                                boolean matchesEmail = !userEmail.isEmpty() && assigned.equalsIgnoreCase(userEmail);
+                                boolean matchesName = !technicianName.isEmpty() && assigned.equalsIgnoreCase(technicianName);
+                                boolean matchesUid = !userId.isEmpty() && assigned.equalsIgnoreCase(userId);
+                                boolean matchesFirst = !firstName.isEmpty() && assigned.equalsIgnoreCase(firstName);
+
+                                if (matchesEmail || matchesName || matchesUid || matchesFirst) {
+                                    jobsList.add(appt);
+                                    mDbHelper.insertOrUpdateAppointment(appt);
+                                }
                             }
                         }
                         adapter.setJobs(jobsList, servicesList);
@@ -155,12 +169,24 @@ public class TechnicianDashboardActivity extends AppCompatActivity {
     }
 
     private void loadJobsOffline() {
-        // Query appointments locally for this technician
-        List<Appointment> allAppts = mDbHelper.getAppointmentsForCustomer(""); // empty gets all locally
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        String userEmail = (currentUser != null && currentUser.getEmail() != null) ? currentUser.getEmail().trim() : "";
+        String userId = (currentUser != null) ? currentUser.getUid() : "";
+        String firstName = (technicianName != null && technicianName.contains(" ")) ? technicianName.split(" ")[0] : technicianName;
+
+        List<Appointment> allAppts = mDbHelper.getAppointmentsForCustomer("");
         List<Appointment> techAppts = new ArrayList<>();
         for (Appointment a : allAppts) {
-            if (a.getAssignedTechnician() != null && a.getAssignedTechnician().equalsIgnoreCase(technicianName)) {
-                techAppts.add(a);
+            if (a.getAssignedTechnician() != null) {
+                String assigned = a.getAssignedTechnician().trim();
+                boolean matchesEmail = !userEmail.isEmpty() && assigned.equalsIgnoreCase(userEmail);
+                boolean matchesName = technicianName != null && assigned.equalsIgnoreCase(technicianName);
+                boolean matchesUid = !userId.isEmpty() && assigned.equalsIgnoreCase(userId);
+                boolean matchesFirst = firstName != null && assigned.equalsIgnoreCase(firstName);
+
+                if (matchesEmail || matchesName || matchesUid || matchesFirst) {
+                    techAppts.add(a);
+                }
             }
         }
         jobsList = techAppts;

@@ -37,13 +37,13 @@
             android:layout_marginTop="2dp" />
 
         <ImageView
-            android:id="@+id/logoutIcon"
+            android:id="@+id/techProfileIcon"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:src="@android:drawable/ic_lock_power_off"
-            android:contentDescription="Log Out"
+            android:src="@android:drawable/ic_menu_myplaces"
+            android:contentDescription="Profile"
             app:tint="@color/white" />
     </RelativeLayout>
 

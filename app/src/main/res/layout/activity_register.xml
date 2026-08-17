@@ -130,28 +130,6 @@
                     android:textColor="@color/textPrimary" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Role Dropdown Input -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/roleInputLayout"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:hint="Select User Role"
-                app:boxStrokeColor="@color/primaryColor"
-                app:hintTextColor="@color/primaryColor"
-                app:startIconDrawable="@android:drawable/ic_menu_info_details"
-                app:startIconTint="@color/textSecondary"
-                app:layout_constraintTop_toBottomOf="@id/addressInputLayout">
-
-                <AutoCompleteTextView
-                    android:id="@+id/roleAutoComplete"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="none"
-                    android:textColor="@color/textPrimary" />
-            </com.google.android.material.textfield.TextInputLayout>
-
             <!-- Password Input -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/passwordRegInputLayout"
@@ -165,7 +143,7 @@
                 app:passwordToggleEnabled="true"
                 app:startIconDrawable="@android:drawable/ic_lock_idle_lock"
                 app:startIconTint="@color/textSecondary"
-                app:layout_constraintTop_toBottomOf="@id/roleInputLayout">
+                app:layout_constraintTop_toBottomOf="@id/addressInputLayout">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/passwordRegEditText"
