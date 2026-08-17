@@ -33,9 +33,8 @@ public class PaymentActivity extends AppCompatActivity {
 
     private TextView paymentTotalText, paymentDeviceText, paymentServiceText;
     private RadioGroup paymentMethodRadioGroup;
-    private LinearLayout cardFieldsContainer, onlineFieldsContainer;
-    private TextInputEditText cardNoEditText, expiryEditText, cvvEditText, bankUsername;
-    private AutoCompleteTextView bankSelectAutoComplete;
+    private LinearLayout cardFieldsContainer;
+    private TextInputEditText cardNameEditText, cardNoEditText, expiryEditText, cvvEditText;
     private MaterialButton btnSubmitPayment;
     private ProgressBar progressBar;
 
@@ -45,8 +44,6 @@ public class PaymentActivity extends AppCompatActivity {
 
     private String appointmentId, deviceModel, serviceName;
     private double serviceCost;
-
-    private final String[] BANKS = {"Commercial Bank", "Bank of Ceylon", "Hatton National Bank", "DFCC Bank"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,12 +74,10 @@ public class PaymentActivity extends AppCompatActivity {
         paymentServiceText = findViewById(R.id.paymentServiceText);
         paymentMethodRadioGroup = findViewById(R.id.paymentMethodRadioGroup);
         cardFieldsContainer = findViewById(R.id.cardFieldsContainer);
-        onlineFieldsContainer = findViewById(R.id.onlineFieldsContainer);
+        cardNameEditText = findViewById(R.id.cardNameEditText);
         cardNoEditText = findViewById(R.id.cardNoEditText);
         expiryEditText = findViewById(R.id.expiryEditText);
         cvvEditText = findViewById(R.id.cvvEditText);
-        bankUsername = findViewById(R.id.bankUsername);
-        bankSelectAutoComplete = findViewById(R.id.bankSelectAutoComplete);
         btnSubmitPayment = findViewById(R.id.btnSubmitPayment);
         progressBar = findViewById(R.id.paymentProgressBar);
 
@@ -90,27 +85,16 @@ public class PaymentActivity extends AppCompatActivity {
         paymentTotalText.setText("Rs. " + String.format("%,.2f", serviceCost));
         paymentDeviceText.setText("Device: " + deviceModel);
         paymentServiceText.setText("Service: " + serviceName);
-        btnSubmitPayment.setText("Pay Rs. " + String.format("%,.2f", serviceCost));
+        btnSubmitPayment.setText("Confirm Cash Payment");
 
-        // Setup Bank selector
-        ArrayAdapter<String> bankAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, BANKS);
-        bankSelectAutoComplete.setAdapter(bankAdapter);
-        bankSelectAutoComplete.setText(BANKS[0], false);
-
-        // Radio group listener to show/hide dynamic fields
+        // Radio group listener to toggle Stripe fields
         paymentMethodRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.radioCash) {
                 cardFieldsContainer.setVisibility(View.GONE);
-                onlineFieldsContainer.setVisibility(View.GONE);
                 btnSubmitPayment.setText("Confirm Cash Payment");
             } else if (checkedId == R.id.radioCard) {
                 cardFieldsContainer.setVisibility(View.VISIBLE);
-                onlineFieldsContainer.setVisibility(View.GONE);
-                btnSubmitPayment.setText("Pay Rs. " + String.format("%,.2f", serviceCost));
-            } else if (checkedId == R.id.radioOnline) {
-                cardFieldsContainer.setVisibility(View.GONE);
-                onlineFieldsContainer.setVisibility(View.VISIBLE);
-                btnSubmitPayment.setText("Pay via Bank Portal");
+                btnSubmitPayment.setText("Pay via Stripe Gateway (Rs. " + String.format("%,.2f", serviceCost) + ")");
             }
         });
 
@@ -119,13 +103,18 @@ public class PaymentActivity extends AppCompatActivity {
 
     private void handlePayment() {
         int checkedId = paymentMethodRadioGroup.getCheckedRadioButtonId();
+        boolean isStripeCard = (checkedId == R.id.radioCard);
 
-        // Perform mock validation based on checkout selection
-        if (checkedId == R.id.radioCard) {
-            String cardNo = cardNoEditText.getText().toString().trim();
-            String expiry = expiryEditText.getText().toString().trim();
-            String cvv = cvvEditText.getText().toString().trim();
+        if (isStripeCard) {
+            String cardName = cardNameEditText.getText() != null ? cardNameEditText.getText().toString().trim() : "";
+            String cardNo = cardNoEditText.getText() != null ? cardNoEditText.getText().toString().trim() : "";
+            String expiry = expiryEditText.getText() != null ? expiryEditText.getText().toString().trim() : "";
+            String cvv = cvvEditText.getText() != null ? cvvEditText.getText().toString().trim() : "";
 
+            if (TextUtils.isEmpty(cardName)) {
+                cardNameEditText.setError("Cardholder Name is required");
+                return;
+            }
             if (cardNo.length() != 16) {
                 cardNoEditText.setError("Enter a valid 16-digit card number");
                 return;
@@ -138,23 +127,17 @@ public class PaymentActivity extends AppCompatActivity {
                 cvvEditText.setError("Enter valid 3-digit CVV");
                 return;
             }
-        } else if (checkedId == R.id.radioOnline) {
-            String username = bankUsername.getText().toString().trim();
-            if (TextUtils.isEmpty(username)) {
-                bankUsername.setError("Enter your banking username");
-                return;
-            }
         }
 
         progressBar.setVisibility(View.VISIBLE);
         btnSubmitPayment.setEnabled(false);
 
-        // Simulation parameters
-        String paymentId = UUID.randomUUID().toString();
+        // Stripe Gateway Simulation
+        String paymentId = "ch_stripe_" + UUID.randomUUID().toString().substring(0, 12);
         String customerId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "anonymous";
         String date = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Calendar.getInstance().getTime());
 
-        String status = "Completed"; // Payments simulation defaults to success
+        String status = "Completed";
         Payment payment = new Payment(paymentId, appointmentId, serviceCost, status, date);
 
         // Write Payment record to Firestore
@@ -167,23 +150,23 @@ public class PaymentActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         // 1. Update the local SQLite repair history table to mark payment completed (Paid)
                         mDbHelper.insertOrUpdateHistory(
-                                appointmentId, // History key
+                                appointmentId,
                                 appointmentId,
                                 customerId,
                                 deviceModel,
                                 serviceName,
-                                "Colombo Branch", // Fallback branch name
+                                "Colombo Branch",
                                 date,
                                 serviceCost,
-                                "Completed", // Mark Paid in local database helper cache!
+                                "Completed",
                                 "Completed"
                         );
 
                         // 2. Update payment status online in appointment document
                         mFirestore.collection("appointments").document(appointmentId)
-                                .update("status", "Completed") // Move to Completed status after pay
+                                .update("status", "Completed")
                                 .addOnCompleteListener(dbTask -> {
-                                    showPaymentSuccessDialog();
+                                    showPaymentSuccessDialog(isStripeCard, paymentId);
                                 });
                     } else {
                         Toast.makeText(PaymentActivity.this, "Payment error: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
@@ -191,16 +174,21 @@ public class PaymentActivity extends AppCompatActivity {
                 });
     }
 
-    private void showPaymentSuccessDialog() {
+    private void showPaymentSuccessDialog(boolean isStripe, String chargeId) {
+        String methodTitle = isStripe ? "Stripe Payment Authorized!" : "Cash Order Confirmed!";
+        String methodDetails = isStripe ? 
+                "Stripe Charge ID: " + chargeId + "\nPayment Status: 200 OK (Succeeded)\n\n" :
+                "Payment Method: Cash on Delivery / Pickup\n\n";
+
         new AlertDialog.Builder(this)
-                .setTitle("Payment Completed!")
-                .setMessage("Thank you! Your simulated transaction has been processed successfully.\n\n"
-                        + "Receipt ID: #" + appointmentId.substring(0, 8).toUpperCase() + "\n"
-                        + "Amount Paid: Rs. " + String.format("%,.2f", serviceCost) + "\n\n"
-                        + "Please show your Ticket ID at the branch to collect your device.")
+                .setTitle(methodTitle)
+                .setMessage("Thank you! Your transaction has been processed successfully.\n\n"
+                        + methodDetails
+                        + "Ticket ID: #" + appointmentId.substring(0, 8).toUpperCase() + "\n"
+                        + "Total Amount: Rs. " + String.format("%,.2f", serviceCost) + "\n\n"
+                        + "Please present your Ticket ID at the branch to collect your device.")
                 .setPositiveButton("Finish", (dialog, which) -> {
                     dialog.dismiss();
-                    // Go back to Customer Dashboard
                     Intent intent = new Intent(PaymentActivity.this, CustomerDashboardActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);

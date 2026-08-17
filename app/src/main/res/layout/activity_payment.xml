@@ -123,20 +123,12 @@
                     android:id="@+id/radioCard"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
-                    android:text="Credit or Debit Card Simulation"
-                    android:textSize="14sp"
-                    android:textColor="@color/textPrimary" />
-
-                <RadioButton
-                    android:id="@+id/radioOnline"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:text="Online Banking Simulation"
+                    android:text="Credit or Debit Card (Stripe Gateway)"
                     android:textSize="14sp"
                     android:textColor="@color/textPrimary" />
             </RadioGroup>
 
-            <!-- Card Simulation Fields Panel (Hidden initially) -->
+            <!-- Stripe Gateway Card Fields Panel (Hidden initially) -->
             <LinearLayout
                 android:id="@+id/cardFieldsContainer"
                 android:layout_width="match_parent"
@@ -145,11 +137,62 @@
                 android:layout_marginTop="16dp"
                 android:visibility="gone">
 
+                <!-- Stripe Gateway Branding Badge -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="8dp"
+                    app:cardBackgroundColor="#6772E5"
+                    app:cardElevation="0dp"
+                    android:layout_marginBottom="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="12dp"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="stripe"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/white"
+                            android:layout_marginEnd="12dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Secure 256-bit SSL Encrypted Payment"
+                            android:textSize="12sp"
+                            android:textColor="@color/white" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Cardholder Name -->
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Card Number"
+                    android:hint="Cardholder Name"
+                    app:boxStrokeColor="@color/primaryColor"
+                    app:hintTextColor="@color/primaryColor"
+                    android:layout_marginBottom="12dp">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/cardNameEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPersonName" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Card Number -->
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Card Number (16 Digits)"
                     app:boxStrokeColor="@color/primaryColor"
                     app:hintTextColor="@color/primaryColor">
                     <com.google.android.material.textfield.TextInputEditText
@@ -200,45 +243,6 @@
                             android:maxLength="3" />
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
-            </LinearLayout>
-
-            <!-- Online Banking Simulation Panel (Hidden initially) -->
-            <LinearLayout
-                android:id="@+id/onlineFieldsContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="16dp"
-                android:visibility="gone">
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Select Bank Portal"
-                    app:boxStrokeColor="@color/primaryColor"
-                    app:hintTextColor="@color/primaryColor">
-                    <AutoCompleteTextView
-                        android:id="@+id/bankSelectAutoComplete"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="none" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:hint="Banking Username"
-                    app:boxStrokeColor="@color/primaryColor"
-                    app:hintTextColor="@color/primaryColor">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/bankUsername"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="text" />
-                </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
             <!-- Pay Button -->
