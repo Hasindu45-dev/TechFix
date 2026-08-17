@@ -32,40 +32,46 @@ public class MainActivity extends AppCompatActivity {
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
-            checkUserRoleAndRedirect(currentUser.getUid());
+            checkUserRoleAndRedirect(currentUser);
         } else {
             startActivity(new Intent(MainActivity.this, LoginActivity.class));
             finish();
         }
     }
 
-    private void checkUserRoleAndRedirect(String userId) {
-        // Try local SQLite cache first for instant redirect
+    private void checkUserRoleAndRedirect(FirebaseUser currentUser) {
+        String userId = currentUser.getUid();
         User cachedUser = mDbHelper.getUser(userId);
-        if (cachedUser != null) {
-            navigateToDashboard(cachedUser.getRole());
-            return;
-        }
 
-        // If not cached, query Firestore
         mFirestore.collection("users").document(userId)
                 .get()
                 .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null) {
-                        DocumentSnapshot document = task.getResult();
-                        if (document.exists()) {
-                            User user = document.toObject(User.class);
-                            if (user != null) {
-                                // Cache User to SQLite database
-                                mDbHelper.insertOrUpdateUser(user);
-                                navigateToDashboard(user.getRole());
-                                return;
-                            }
+                    String role = "Customer";
+                    if (task.isSuccessful() && task.getResult() != null && task.getResult().exists()) {
+                        User user = task.getResult().toObject(User.class);
+                        if (user != null) {
+                            mDbHelper.insertOrUpdateUser(user);
+                            role = user.getRole();
                         }
+                    } else if (cachedUser != null && cachedUser.getRole() != null) {
+                        role = cachedUser.getRole();
                     }
-                    // Fallback to Login
-                    startActivity(new Intent(MainActivity.this, LoginActivity.class));
-                    finish();
+
+                    final String userRole = (role != null) ? role : "Customer";
+
+                    if ("Admin".equalsIgnoreCase(userRole) || "Technician".equalsIgnoreCase(userRole)) {
+                        navigateToDashboard(userRole);
+                    } else {
+                        currentUser.reload().addOnCompleteListener(reloadTask -> {
+                            if (currentUser.isEmailVerified()) {
+                                navigateToDashboard("Customer");
+                            } else {
+                                mAuth.signOut();
+                                startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                                finish();
+                            }
+                        });
+                    }
                 });
     }
 

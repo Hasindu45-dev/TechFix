@@ -117,15 +117,35 @@ public class RegisterActivity extends AppCompatActivity {
                             mFirestore.collection("users").document(uid)
                                      .set(user)
                                      .addOnCompleteListener(dbTask -> {
-                                         progressBar.setVisibility(View.GONE);
-                                         registerButton.setEnabled(true);
                                          if (dbTask.isSuccessful()) {
-                                             // Cache user to local SQLite
                                              mDbHelper.insertOrUpdateUser(user);
 
-                                             Toast.makeText(RegisterActivity.this, "Registration Successful!", Toast.LENGTH_SHORT).show();
-                                             navigateToCustomerDashboard();
+                                             // Send Verification Email
+                                             firebaseUser.sendEmailVerification()
+                                                     .addOnCompleteListener(emailTask -> {
+                                                         progressBar.setVisibility(View.GONE);
+                                                         registerButton.setEnabled(true);
+                                                         mAuth.signOut();
+
+                                                         if (emailTask.isSuccessful()) {
+                                                             new androidx.appcompat.app.AlertDialog.Builder(RegisterActivity.this)
+                                                                     .setTitle("Verify Your Email")
+                                                                     .setMessage("Registration successful! A verification email has been sent to " + email + ". Please check your inbox and click the verification link before logging in.")
+                                                                     .setPositiveButton("OK", (dialog, which) -> {
+                                                                         startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                                                                         finish();
+                                                                     })
+                                                                     .setCancelable(false)
+                                                                     .show();
+                                                         } else {
+                                                             Toast.makeText(RegisterActivity.this, "Account created, but failed to send verification email: " + emailTask.getException().getMessage(), Toast.LENGTH_LONG).show();
+                                                             startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                                                             finish();
+                                                         }
+                                                     });
                                          } else {
+                                             progressBar.setVisibility(View.GONE);
+                                             registerButton.setEnabled(true);
                                              Toast.makeText(RegisterActivity.this, "Database error: " + dbTask.getException().getMessage(), Toast.LENGTH_LONG).show();
                                          }
                                      });

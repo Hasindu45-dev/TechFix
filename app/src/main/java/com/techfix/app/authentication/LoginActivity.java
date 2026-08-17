@@ -79,12 +79,73 @@ public class LoginActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
                         if (firebaseUser != null) {
-                            fetchUserRoleAndRedirect(firebaseUser.getUid());
+                            fetchUserRoleAndVerify(firebaseUser);
                         }
                     } else {
                         progressBar.setVisibility(View.GONE);
                         signInButton.setEnabled(true);
                         Toast.makeText(LoginActivity.this, "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void fetchUserRoleAndVerify(FirebaseUser firebaseUser) {
+        String userId = firebaseUser.getUid();
+        User cachedUser = mDbHelper.getUser(userId);
+
+        mFirestore.collection("users").document(userId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    String role = "Customer";
+                    if (task.isSuccessful() && task.getResult() != null && task.getResult().exists()) {
+                        User user = task.getResult().toObject(User.class);
+                        if (user != null) {
+                            mDbHelper.insertOrUpdateUser(user);
+                            role = user.getRole();
+                        }
+                    } else if (cachedUser != null && cachedUser.getRole() != null) {
+                        role = cachedUser.getRole();
+                    }
+
+                    final String userRole = (role != null) ? role : "Customer";
+
+                    // Admin and Technician do not require email verification
+                    if ("Admin".equalsIgnoreCase(userRole) || "Technician".equalsIgnoreCase(userRole)) {
+                        progressBar.setVisibility(View.GONE);
+                        signInButton.setEnabled(true);
+                        Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
+                        navigateToDashboard(userRole);
+                    } else {
+                        // Customer accounts must have a verified email
+                        firebaseUser.reload().addOnCompleteListener(reloadTask -> {
+                            progressBar.setVisibility(View.GONE);
+                            signInButton.setEnabled(true);
+
+                            if (firebaseUser.isEmailVerified()) {
+                                Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
+                                navigateToDashboard("Customer");
+                            } else {
+                                new androidx.appcompat.app.AlertDialog.Builder(LoginActivity.this)
+                                        .setTitle("Email Not Verified")
+                                        .setMessage("Your email address is not verified yet. Please check your inbox and click the verification link before logging in.")
+                                        .setPositiveButton("Resend Email", (dialog, which) -> {
+                                            firebaseUser.sendEmailVerification()
+                                                    .addOnCompleteListener(resendTask -> {
+                                                        if (resendTask.isSuccessful()) {
+                                                            Toast.makeText(LoginActivity.this, "Verification email resent to " + firebaseUser.getEmail(), Toast.LENGTH_SHORT).show();
+                                                        } else {
+                                                            Toast.makeText(LoginActivity.this, "Failed to resend: " + resendTask.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                        }
+                                                        mAuth.signOut();
+                                                    });
+                                        })
+                                        .setNegativeButton("Cancel", (dialog, which) -> {
+                                            mAuth.signOut();
+                                        })
+                                        .setCancelable(false)
+                                        .show();
+                            }
+                        });
                     }
                 });
     }
