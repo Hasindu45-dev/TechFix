@@ -28,6 +28,7 @@ import com.techfix.app.R;
 import com.techfix.app.adapters.GenericCrudAdapter;
 import com.techfix.app.database.DatabaseHelper;
 import com.techfix.app.models.Branch;
+import com.techfix.app.models.RequiredPart;
 import com.techfix.app.models.Service;
 import com.techfix.app.models.SparePart;
 import com.techfix.app.models.Technician;
@@ -218,6 +219,89 @@ public class AdminManageDataActivity extends AppCompatActivity {
 
                 saveNewTechnicianWithAuth(name, email, password, spec, branch);
             });
+        } else if ("services".equalsIgnoreCase(manageType)) {
+            builder.setTitle("Add New Service");
+
+            final EditText nameInput = new EditText(this);
+            nameInput.setHint("Service Name (e.g. Laptop Screen Repair)");
+            nameInput.setSingleLine(true);
+
+            final TextView categoryLabel = new TextView(this);
+            categoryLabel.setText("Device Category:");
+            categoryLabel.setPadding(8, 16, 8, 4);
+
+            final Spinner categorySpinner = new Spinner(this);
+            ArrayAdapter<String> catAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new String[]{"Computer", "Mobile"});
+            catAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            categorySpinner.setAdapter(catAdapter);
+
+            final EditText priceInput = new EditText(this);
+            priceInput.setHint("Price in Rs. (e.g. 15000)");
+            priceInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+            priceInput.setSingleLine(true);
+
+            final EditText descInput = new EditText(this);
+            descInput.setHint("Description (e.g. Full screen replacement)");
+            descInput.setSingleLine(true);
+
+            final TextView partLabel = new TextView(this);
+            partLabel.setText("Required Spare Part:");
+            partLabel.setPadding(8, 16, 8, 4);
+
+            final Spinner partSpinner = new Spinner(this);
+            String[] defaultParts = new String[]{
+                "None / Software Service",
+                "Laptop Screen",
+                "Mobile Screen",
+                "Mobile Battery",
+                "Laptop Battery",
+                "SSD",
+                "Laptop Keyboard",
+                "Motherboard IC Chip",
+                "USB-C Charging Port",
+                "Camera Module",
+                "Speaker Module",
+                "Wi-Fi Antenna Module"
+            };
+            ArrayAdapter<String> partAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, defaultParts);
+            partAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            partSpinner.setAdapter(partAdapter);
+
+            layout.addView(nameInput);
+            layout.addView(categoryLabel);
+            layout.addView(categorySpinner);
+            layout.addView(priceInput);
+            layout.addView(descInput);
+            layout.addView(partLabel);
+            layout.addView(partSpinner);
+
+            builder.setView(layout);
+
+            builder.setPositiveButton("Add Service", (dialog, which) -> {
+                String sName = nameInput.getText().toString().trim();
+                String sCat = categorySpinner.getSelectedItem().toString();
+                String sPriceStr = priceInput.getText().toString().trim();
+                String sDesc = descInput.getText().toString().trim();
+                String selectedPart = partSpinner.getSelectedItem().toString();
+
+                if (TextUtils.isEmpty(sName)) {
+                    Toast.makeText(this, "Service Name is required", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (TextUtils.isEmpty(sPriceStr)) {
+                    Toast.makeText(this, "Price is required", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                double sPrice = 0.0;
+                try {
+                    sPrice = Double.parseDouble(sPriceStr);
+                } catch (Exception e) {
+                    sPrice = 0.0;
+                }
+
+                saveNewServiceRecord(sName, sCat, sPrice, sDesc, selectedPart);
+            });
         } else {
             final EditText input1 = new EditText(this);
             final EditText input2 = new EditText(this);
@@ -366,6 +450,107 @@ public class AdminManageDataActivity extends AppCompatActivity {
 
                 updateTechnicianRecord(t.getTechnicianId(), t.getName(), val1, t.getEmail(), val2, val3);
             });
+        } else if ("services".equalsIgnoreCase(manageType) && item.rawObject instanceof Service) {
+            Service s = (Service) item.rawObject;
+            builder.setTitle("Edit Service");
+
+            final EditText nameInput = new EditText(this);
+            nameInput.setHint("Service Name");
+            nameInput.setText(s.getName());
+            nameInput.setSingleLine(true);
+
+            final TextView categoryLabel = new TextView(this);
+            categoryLabel.setText("Device Category:");
+            categoryLabel.setPadding(8, 16, 8, 4);
+
+            final Spinner categorySpinner = new Spinner(this);
+            ArrayAdapter<String> catAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new String[]{"Computer", "Mobile"});
+            catAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            categorySpinner.setAdapter(catAdapter);
+            if ("mobile".equalsIgnoreCase(s.getCategory())) {
+                categorySpinner.setSelection(1);
+            } else {
+                categorySpinner.setSelection(0);
+            }
+
+            final EditText priceInput = new EditText(this);
+            priceInput.setHint("Price in Rs.");
+            priceInput.setText(String.valueOf(s.getPrice()));
+            priceInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+            priceInput.setSingleLine(true);
+
+            final EditText descInput = new EditText(this);
+            descInput.setHint("Description");
+            descInput.setText(s.getDescription() != null ? s.getDescription() : "");
+            descInput.setSingleLine(true);
+
+            final TextView partLabel = new TextView(this);
+            partLabel.setText("Required Spare Part:");
+            partLabel.setPadding(8, 16, 8, 4);
+
+            final Spinner partSpinner = new Spinner(this);
+            String[] defaultParts = new String[]{
+                "None / Software Service",
+                "Laptop Screen",
+                "Mobile Screen",
+                "Mobile Battery",
+                "Laptop Battery",
+                "SSD",
+                "Laptop Keyboard",
+                "Motherboard IC Chip",
+                "USB-C Charging Port",
+                "Camera Module",
+                "Speaker Module",
+                "Wi-Fi Antenna Module"
+            };
+            ArrayAdapter<String> partAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, defaultParts);
+            partAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            partSpinner.setAdapter(partAdapter);
+
+            String existingPart = "";
+            if (s.getRequiredParts() != null && !s.getRequiredParts().isEmpty()) {
+                existingPart = s.getRequiredParts().get(0).getPartName();
+            }
+            if (!existingPart.isEmpty()) {
+                for (int i = 0; i < defaultParts.length; i++) {
+                    if (defaultParts[i].equalsIgnoreCase(existingPart)) {
+                        partSpinner.setSelection(i);
+                        break;
+                    }
+                }
+            }
+
+            layout.addView(nameInput);
+            layout.addView(categoryLabel);
+            layout.addView(categorySpinner);
+            layout.addView(priceInput);
+            layout.addView(descInput);
+            layout.addView(partLabel);
+            layout.addView(partSpinner);
+
+            builder.setView(layout);
+
+            builder.setPositiveButton("Save", (dialog, which) -> {
+                String sName = nameInput.getText().toString().trim();
+                String sCat = categorySpinner.getSelectedItem().toString();
+                String sPriceStr = priceInput.getText().toString().trim();
+                String sDesc = descInput.getText().toString().trim();
+                String selectedPart = partSpinner.getSelectedItem().toString();
+
+                if (TextUtils.isEmpty(sName)) {
+                    Toast.makeText(this, "Service Name is required", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                double sPrice = 0.0;
+                try {
+                    sPrice = Double.parseDouble(sPriceStr);
+                } catch (Exception e) {
+                    sPrice = 0.0;
+                }
+
+                updateServiceRecord(s.getServiceId(), sName, sCat, sPrice, sDesc, selectedPart);
+            });
         } else {
             final EditText input1 = new EditText(this);
             final EditText input2 = new EditText(this);
@@ -375,13 +560,7 @@ public class AdminManageDataActivity extends AppCompatActivity {
             layout.addView(input2);
             layout.addView(input3);
 
-            if ("services".equalsIgnoreCase(manageType) && item.rawObject instanceof Service) {
-                Service s = (Service) item.rawObject;
-                input1.setText(s.getName());
-                input2.setText(s.getCategory());
-                input3.setText(String.valueOf(s.getPrice()));
-                input3.setInputType(InputType.TYPE_CLASS_NUMBER);
-            } else if ("spare_parts".equalsIgnoreCase(manageType) && item.rawObject instanceof SparePart) {
+            if ("spare_parts".equalsIgnoreCase(manageType) && item.rawObject instanceof SparePart) {
                 SparePart sp = (SparePart) item.rawObject;
                 input1.setText(sp.getName());
                 input2.setText(String.valueOf(sp.getQuantity()));
@@ -411,6 +590,37 @@ public class AdminManageDataActivity extends AppCompatActivity {
 
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
         builder.show();
+    }
+
+    private void saveNewServiceRecord(String name, String category, double price, String description, String requiredPartName) {
+        String id = UUID.randomUUID().toString();
+        Service service = new Service(id, name, category, description, price, "1-2 Days", "");
+        if (requiredPartName != null && !requiredPartName.startsWith("None")) {
+            List<RequiredPart> parts = new ArrayList<>();
+            parts.add(new RequiredPart(requiredPartName, 1));
+            service.setRequiredParts(parts);
+        }
+
+        mDbHelper.insertOrUpdateService(service);
+        mFirestore.collection("services").document(id).set(service).addOnSuccessListener(aVoid -> {
+            Toast.makeText(this, "Service added successfully!", Toast.LENGTH_SHORT).show();
+            loadData();
+        });
+    }
+
+    private void updateServiceRecord(String id, String name, String category, double price, String description, String requiredPartName) {
+        Service service = new Service(id, name, category, description, price, "1-2 Days", "");
+        if (requiredPartName != null && !requiredPartName.startsWith("None")) {
+            List<RequiredPart> parts = new ArrayList<>();
+            parts.add(new RequiredPart(requiredPartName, 1));
+            service.setRequiredParts(parts);
+        }
+
+        mDbHelper.insertOrUpdateService(service);
+        mFirestore.collection("services").document(id).set(service).addOnSuccessListener(aVoid -> {
+            Toast.makeText(this, "Service updated successfully!", Toast.LENGTH_SHORT).show();
+            loadData();
+        });
     }
 
     private void updateTechnicianRecord(String techId, String oldName, String newName, String email, String spec, String branch) {
